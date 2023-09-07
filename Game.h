@@ -3,6 +3,8 @@
 #include "DXCore.h"
 #include <DirectXMath.h>
 #include <wrl/client.h> // Used for ComPtr - a smart pointer for COM objects
+#include <memory>
+#include "Mesh.h"
 
 class Game 
 	: public DXCore
@@ -38,6 +40,8 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-
+	std::shared_ptr<Mesh> triangle;
+	std::shared_ptr<Mesh> square;
+	std::shared_ptr<Mesh> shape;
 };
 

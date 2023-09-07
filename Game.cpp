@@ -61,6 +61,7 @@ void Game::Init()
 	LoadShaders();
 	CreateGeometry();
 	
+	
 	// Set initial graphics API state
 	//  - These settings persist until we change them
 	//  - Some of these, like the primitive topology & input layout, probably won't change
@@ -166,6 +167,7 @@ void Game::CreateGeometry()
 	XMFLOAT4 red	= XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
 	XMFLOAT4 green	= XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
 	XMFLOAT4 blue	= XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	XMFLOAT4 magenta = XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f);
 
 	// Set up the vertices of the triangle we would like to draw
 	// - We're going to copy this array, exactly as it exists in CPU memory
@@ -193,7 +195,33 @@ void Game::CreateGeometry()
 	// - But just to see how it's done...
 	unsigned int indices[] = { 0, 1, 2 };
 
+	triangle = std::make_shared<Mesh>(vertices, 3, indices, 3, context, device);
 
+	Vertex vertices1[] =
+	{
+		{ XMFLOAT3(-0.5f + 1, +0.5f + 1, +0.0f), red },
+		{ XMFLOAT3(+0.5f + 1, +0.5f + 1, +0.0f), blue },
+		{ XMFLOAT3(+0.5f + 1, -0.5f + 1, +0.0f), red },
+		{ XMFLOAT3(-0.5f + 1, -0.5f + 1, +0.0f), blue }
+	};
+	
+	unsigned int indices1[] = { 0, 1, 2, 0, 2, 3 };
+
+	square = std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device);
+
+	Vertex vertices2[] =
+	{
+		{ XMFLOAT3(+0.0f - 0.5, +0.3f + 0.5, +0.0f), red },
+		{ XMFLOAT3(+0.3f - 0.5, -0.3f + 0.5, +0.0f), blue },
+		{ XMFLOAT3(-0.3f - 0.5, -0.3f + 0.5, +0.0f), green },
+		{ XMFLOAT3(+0.0f - 0.5, -0.3f + 0.5, +0.0f), magenta }
+	};
+
+	unsigned int indices2[] = { 2,0,1,2,1,3,2 };
+
+	shape = std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device);
+
+	/*
 	// Create a VERTEX BUFFER
 	// - This holds the vertex data of triangles for a single object
 	// - This buffer is created on the GPU, which is where the data needs to
@@ -246,6 +274,7 @@ void Game::CreateGeometry()
 		// - Once we do this, we'll NEVER CHANGE THE BUFFER AGAIN
 		device->CreateBuffer(&ibd, &initialIndexData, indexBuffer.GetAddressOf());
 	}
+	*/
 }
 
 
@@ -286,7 +315,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		// Clear the depth buffer (resets per-pixel occlusion information)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
-
+	triangle->Draw();
+	square->Draw();
+	shape->Draw();
+	/*
 	// DRAW geometry
 	// - These steps are generally repeated for EACH object you draw
 	// - Other Direct3D calls will also be necessary to do more complex things
@@ -312,7 +344,7 @@ void Game::Draw(float deltaTime, float totalTime)
 			0,     // Offset to the first index we want to use
 			0);    // Offset to add to each index when looking up vertices
 	}
-
+	*/
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
 	// - At the very end of the frame (after drawing *everything*)
