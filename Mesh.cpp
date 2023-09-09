@@ -16,6 +16,7 @@ Mesh::Mesh(
 	
 	this->deviceContext = deviceContext;
 
+	//Vertex Buffer
 	D3D11_BUFFER_DESC vbd = {};
 	vbd.Usage = D3D11_USAGE_IMMUTABLE;
 	vbd.ByteWidth = sizeof(Vertex) * vertexCount;       
@@ -30,7 +31,7 @@ Mesh::Mesh(
 
 	device->CreateBuffer(&vbd, &initialVertexData, vertexBuffer.GetAddressOf());
 
-
+	//Index Buffer
 	D3D11_BUFFER_DESC ibd = {};
 	ibd.Usage = D3D11_USAGE_IMMUTABLE;	
 	ibd.ByteWidth = sizeof(unsigned int) * indexCount;	
@@ -64,6 +65,7 @@ int Mesh::GetIndexCount() {
 	return indexCount;
 }
 void Mesh::Draw() {
+	//Draw mesh using buffers
 	UINT stride = sizeof(Vertex);
 	UINT offset = 0;
 
