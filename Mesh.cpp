@@ -15,6 +15,7 @@ Mesh::Mesh(
 	Microsoft::WRL::ComPtr<ID3D11Device> device) {
 	
 	this->deviceContext = deviceContext;
+	this->indexCount = indexCount;
 
 	//Vertex Buffer
 	D3D11_BUFFER_DESC vbd = {};
