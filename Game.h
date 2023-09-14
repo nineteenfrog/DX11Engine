@@ -46,5 +46,8 @@ private:
 	std::shared_ptr<Mesh> triangle;
 	std::shared_ptr<Mesh> square;
 	std::shared_ptr<Mesh> shape;
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
+	float shapeOffset[3] = { 0.0f, 0.0f, 0.0f };
+	float colorOffset[4] = { 0.0f,0.0f,0.0f };
 };
 

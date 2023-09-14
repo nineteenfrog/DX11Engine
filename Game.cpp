@@ -2,6 +2,7 @@
 #include "Vertex.h"
 #include "Input.h"
 #include "PathHelpers.h"
+#include "BufferStructs.h"
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
@@ -96,6 +97,18 @@ void Game::Init()
 
 		ImGui::StyleColorsDark();
 	}
+	// Get size as the next multiple of 16 (instead of hardcoding a size here!)
+	unsigned int size = sizeof(VertexShaderExternalData);
+	size = (size + 15) / 16 * 16; // This will work even if the struct size changes
+
+	// Describe the constant buffer
+	D3D11_BUFFER_DESC cbDesc = {}; // Sets struct to all zeros
+	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	cbDesc.ByteWidth = size; // Must be a multiple of 16
+	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
+
+	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
 }
 
 // --------------------------------------------------------
@@ -260,6 +273,7 @@ void Game::Update(float deltaTime, float totalTime)
 		io.DisplaySize.x = (float)this->windowWidth;
 		io.DisplaySize.y = (float)this->windowHeight;
 
+
 		// Reset the frame
 		ImGui_ImplDX11_NewFrame();
 		ImGui_ImplWin32_NewFrame();
@@ -271,7 +285,13 @@ void Game::Update(float deltaTime, float totalTime)
 		input.SetMouseCapture(io.WantCaptureMouse);
 
 		// Show the demo window
-		ImGui::ShowDemoWindow();
+		//ImGui::ShowDemoWindow(); 
+		ImGui::Begin("Window");
+		ImGui::Text("FPS: %f", io.Framerate);
+		ImGui::Text("Window dimensions: %i x %i", windowWidth, windowHeight);
+		ImGui::DragFloat3("Offset", shapeOffset);
+		ImGui::DragFloat4("Color", colorOffset);
+		ImGui::End();
 	}
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -284,6 +304,20 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	VertexShaderExternalData vsData;
+	vsData.colorTint = XMFLOAT4(colorOffset);
+	vsData.offset = XMFLOAT3(shapeOffset);
+	
+	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
+	context->Unmap(vsConstantBuffer.Get(), 0);
+
+	context->VSSetConstantBuffers(
+		0, // Which slot (register) to bind the buffer to?
+		1, // How many are we activating? Can do multiple at once
+		vsConstantBuffer.GetAddressOf()); // Array of buffers (or the address of one)
+
 	// Frame START
 	// - These things should happen ONCE PER FRAME
 	// - At the beginning of Game::Draw() before drawing *anything*
