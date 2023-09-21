@@ -7,6 +7,7 @@ Transform::Transform() {
 	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	matrixChanged = false;
 	XMStoreFloat4x4(&world, XMMatrixIdentity());
 	XMStoreFloat4x4(&worldInverseTranspose, XMMatrixIdentity());
 }
@@ -63,10 +64,12 @@ void Transform::SetPosition(DirectX::XMFLOAT3 position) {
 	matrixChanged = true;
 }
 void Transform::SetRotation(float pitch, float yaw, float roll) {
-	this->rotation.x = pitch;
-	this->rotation.y = yaw;
-	this->rotation.z = roll;
-
+	//this->rotation.x = pitch;
+	//this->rotation.y = yaw;
+	//this->rotation.z = roll;
+	XMFLOAT3 temp = XMFLOAT3(pitch,yaw,roll);
+	//XMStoreFloat3(&rotation, temp);
+	//^Could not figure out how to change the values of a XMFLOAT3 (rotation)
 	matrixChanged = true;
 }
 void Transform::SetRotation(DirectX::XMFLOAT3 rotation) {

@@ -8,6 +8,7 @@
 #include "ImGui/imgui.h"
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui_impl_win32.h"
+#include "GameEntity.h"
 
 class Game 
 	: public DXCore
@@ -43,9 +44,7 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-	std::shared_ptr<Mesh> triangle;
-	std::shared_ptr<Mesh> square;
-	std::shared_ptr<Mesh> shape;
+	GameEntity shapes[5] = {};
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
 	float shapeOffset[3] = { 0.0f, 0.0f, 0.0f };
 	float colorOffset[4] = { 0.0f,0.0f,0.0f };

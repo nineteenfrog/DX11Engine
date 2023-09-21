@@ -221,7 +221,7 @@ void Game::CreateGeometry()
 	// - But just to see how it's done...
 	unsigned int indices[] = { 0, 1, 2 };
 
-	triangle = std::make_shared<Mesh>(vertices, 3, indices, 3, context, device);
+	shapes[0] = GameEntity(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
 
 	Vertex vertices1[] =
 	{
@@ -233,7 +233,7 @@ void Game::CreateGeometry()
 	
 	unsigned int indices1[] = { 0, 1, 2, 0, 2, 3 };
 
-	square = std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device);
+	shapes[1] = GameEntity(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
 
 	Vertex vertices2[] =
 	{
@@ -245,8 +245,12 @@ void Game::CreateGeometry()
 
 	unsigned int indices2[] = { 2,0,1,2,1,3,2 };
 
-	shape = std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device);
-
+	shapes[2] = GameEntity(std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device));
+	
+	//copied shapes
+	shapes[3] = GameEntity(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
+	shapes[4] = GameEntity(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
+	int testing = 91;
 }
 
 
@@ -290,8 +294,13 @@ void Game::Update(float deltaTime, float totalTime)
 		ImGui::Text("FPS: %f", io.Framerate);
 		ImGui::Text("Window dimensions: %i x %i", windowWidth, windowHeight);
 		ImGui::DragFloat3("Offset", shapeOffset);
-		ImGui::DragFloat4("Color", colorOffset);
+		ImGui::ColorEdit3("Color", colorOffset);
 		ImGui::End();
+	}
+
+	{
+		//Could not swap out values
+		//shapes[3].GetTransform()->SetRotation(0.0f, 0.0f, deltaTime);
 	}
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -304,14 +313,18 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	//Shader data  - A
 	VertexShaderExternalData vsData;
 	vsData.colorTint = XMFLOAT4(colorOffset);
+	XMStoreFloat4x4(&vsData.worldMatrix, //Store the data from ImGui into the VShader data
+		XMMatrixTranslation(shapeOffset[0], shapeOffset[1], shapeOffset[2]));
 	
+	//Passing shader data with constant buffer
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
 	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
 	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
 	context->Unmap(vsConstantBuffer.Get(), 0);
-
+	
 	context->VSSetConstantBuffers(
 		0, // Which slot (register) to bind the buffer to?
 		1, // How many are we activating? Can do multiple at once
@@ -329,9 +342,10 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
-	triangle->Draw();
-	square->Draw();
-	shape->Draw();
+	//Drawing shapes -A
+	for (int i = 0; i < 5; i++) {
+		shapes[i].Draw(vsConstantBuffer, context);
+	}
 	
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
