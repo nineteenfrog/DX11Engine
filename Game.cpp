@@ -109,6 +109,7 @@ void Game::Init()
 	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
 
 	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
+
 }
 
 // --------------------------------------------------------
@@ -221,7 +222,7 @@ void Game::CreateGeometry()
 	// - But just to see how it's done...
 	unsigned int indices[] = { 0, 1, 2 };
 
-	shapes[0] = GameEntity(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
+	shapes[0] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
 
 	Vertex vertices1[] =
 	{
@@ -233,7 +234,7 @@ void Game::CreateGeometry()
 	
 	unsigned int indices1[] = { 0, 1, 2, 0, 2, 3 };
 
-	shapes[1] = GameEntity(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
+	shapes[1] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
 
 	Vertex vertices2[] =
 	{
@@ -245,12 +246,11 @@ void Game::CreateGeometry()
 
 	unsigned int indices2[] = { 2,0,1,2,1,3,2 };
 
-	shapes[2] = GameEntity(std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device));
+	shapes[2] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device));
 	
 	//copied shapes
-	shapes[3] = GameEntity(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
-	shapes[4] = GameEntity(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
-	int testing = 91;
+	shapes[3] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
+	shapes[4] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
 }
 
 
@@ -289,18 +289,79 @@ void Game::Update(float deltaTime, float totalTime)
 		input.SetMouseCapture(io.WantCaptureMouse);
 
 		// Show the demo window
-		//ImGui::ShowDemoWindow(); 
+		ImGui::ShowDemoWindow(); 
 		ImGui::Begin("Window");
 		ImGui::Text("FPS: %f", io.Framerate);
 		ImGui::Text("Window dimensions: %i x %i", windowWidth, windowHeight);
-		ImGui::DragFloat3("Offset", shapeOffset);
-		ImGui::ColorEdit3("Color", colorOffset);
+		if (ImGui::CollapsingHeader("Shape 1"))
+		{
+
+			ImGui::DragFloat3("Translation", translation[0]);
+			ImGui::DragFloat3("Rotation", rotation[0]);
+			ImGui::DragFloat3("Scale", scale[0]);
+			ImGui::ColorEdit3("Color", colorOffset);
+
+		}
+		if (ImGui::CollapsingHeader("Shape 2"))
+		{
+			ImGui::DragFloat3("Translation", translation[1]);
+			ImGui::DragFloat3("Rotation", rotation[1]);
+			ImGui::DragFloat3("Scale", scale[1]);
+			ImGui::ColorEdit3("Color", colorOffset);
+		}
+		if (ImGui::CollapsingHeader("Shape 3"))
+		{
+			ImGui::DragFloat3("Translation", translation[2]);
+			ImGui::DragFloat3("Rotation", rotation[2]);
+			ImGui::DragFloat3("Scale", scale[2]);
+			ImGui::ColorEdit3("Color", colorOffset);
+		}
+		if (ImGui::CollapsingHeader("Shape 4"))
+		{
+			ImGui::DragFloat3("Translation", translation[3]);
+			ImGui::DragFloat3("Rotation", rotation[3]);
+			ImGui::DragFloat3("Scale", scale[3]);
+			ImGui::ColorEdit3("Color", colorOffset);
+
+		}
+		if (ImGui::CollapsingHeader("Shape 5"))
+		{
+			ImGui::DragFloat3("Translation", translation[4]);
+			ImGui::DragFloat3("Rotation", rotation[4]);
+			ImGui::DragFloat3("Scale", scale[4]);
+			ImGui::ColorEdit3("Color", colorOffset);
+		}
 		ImGui::End();
+		//ImGui::CollapsingHeader("Test");
 	}
 
 	{
-		//Could not swap out values
-		//shapes[3].GetTransform()->SetRotation(0.0f, 0.0f, deltaTime);
+		//translation
+		if (shapes[0]->GetTransform()->GetPosition().x <= 1.0f && going) {
+			shapes[0]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
+			shapes[1]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
+		}
+		else if (shapes[0]->GetTransform()->GetPosition().x > 0.0f) 
+		{
+			going = false;
+			shapes[0]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
+			shapes[1]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
+		}
+		else {
+			going = true;
+		}
+
+		//scale
+		if (!going) {
+			shapes[3]->GetTransform()->Scale(0.999f, 0.999f, 1.0f);
+		}
+		else if(going){
+			shapes[3]->GetTransform()->Scale(1.001f, 1.001f, 1.0f);
+		}
+
+		//rotation
+		shapes[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
+		shapes[4]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
 	}
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -313,22 +374,6 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
-	//Shader data  - A
-	VertexShaderExternalData vsData;
-	vsData.colorTint = XMFLOAT4(colorOffset);
-	XMStoreFloat4x4(&vsData.worldMatrix, //Store the data from ImGui into the VShader data
-		XMMatrixTranslation(shapeOffset[0], shapeOffset[1], shapeOffset[2]));
-	
-	//Passing shader data with constant buffer
-	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
-	context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
-	memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
-	context->Unmap(vsConstantBuffer.Get(), 0);
-	
-	context->VSSetConstantBuffers(
-		0, // Which slot (register) to bind the buffer to?
-		1, // How many are we activating? Can do multiple at once
-		vsConstantBuffer.GetAddressOf()); // Array of buffers (or the address of one)
 
 	// Frame START
 	// - These things should happen ONCE PER FRAME
@@ -344,7 +389,23 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
-		shapes[i].Draw(vsConstantBuffer, context);
+		//Shader data  - A
+		VertexShaderExternalData vsData;
+		vsData.colorTint = XMFLOAT4(colorOffset);
+		//Store the data from ImGui into the VShader data
+		vsData.worldMatrix = shapes[i]->GetTransform()->GetWorldMatrix();
+
+		//Passing shader data with constant buffer
+		D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
+		context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
+		memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
+		context->Unmap(vsConstantBuffer.Get(), 0);
+
+		context->VSSetConstantBuffers(
+			0, // Which slot (register) to bind the buffer to?
+			1, // How many are we activating? Can do multiple at once
+			vsConstantBuffer.GetAddressOf()); // Array of buffers (or the address of one)
+		shapes[i]->Draw(vsConstantBuffer, context);
 	}
 	
 	// Frame END

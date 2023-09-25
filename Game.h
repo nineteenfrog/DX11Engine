@@ -44,9 +44,29 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11PixelShader> pixelShader;
 	Microsoft::WRL::ComPtr<ID3D11VertexShader> vertexShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-	GameEntity shapes[5] = {};
+	std::shared_ptr<GameEntity> shapes[5];
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer;
-	float shapeOffset[3] = { 0.0f, 0.0f, 0.0f };
+	float translation[5][3] = {
+		{ 0.0f,0.0f ,0.0f },
+		{ 0.0f,0.0f ,0.0f } ,
+		{ 0.0f,0.0f ,0.0f } ,
+		{ 0.0f,0.0f ,0.0f } ,
+		{ 0.0f,0.0f ,0.0f } };
+	float rotation[5][3] = {
+		{ 0.0f,0.0f ,0.0f },
+		{ 0.0f,0.0f ,0.0f } ,
+		{ 0.0f,0.0f ,0.0f } ,
+		{ 0.0f,0.0f ,0.0f } ,
+		{ 0.0f,0.0f ,0.0f } };
+	float scale[5][3] = {
+		{ 1.0f,1.0f ,1.0f },
+		{ 1.0f,1.0f ,1.0f } ,
+		{ 1.0f,1.0f ,1.0f } ,
+		{ 1.0f,1.0f ,1.0f } ,
+		{ 1.0f,1.0f ,1.0f } };
 	float colorOffset[4] = { 0.0f,0.0f,0.0f };
+	//Variables for shape movement
+	bool going = true;
+	int counter = 0;
 };
 
