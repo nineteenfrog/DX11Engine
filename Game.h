@@ -64,7 +64,14 @@ private:
 		{ 1.0f,1.0f ,1.0f } ,
 		{ 1.0f,1.0f ,1.0f } ,
 		{ 1.0f,1.0f ,1.0f } };
-	float colorOffset[4] = { 0.0f,0.0f,0.0f };
+	float colorOffset[5][4] = {
+		{0.0f,0.0f,0.0f, 0.0f},
+		{0.0f,0.0f,0.0f, 0.0f},
+		{0.0f,0.0f,0.0f, 0.0f},
+		{0.0f,0.0f,0.0f, 0.0f},
+		{0.0f,0.0f,0.0f, 0.0f}
+	};
+
 	//Variables for shape movement
 	bool going = true;
 	int counter = 0;

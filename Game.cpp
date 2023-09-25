@@ -110,6 +110,7 @@ void Game::Init()
 
 	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
 
+
 }
 
 // --------------------------------------------------------
@@ -293,46 +294,25 @@ void Game::Update(float deltaTime, float totalTime)
 		ImGui::Begin("Window");
 		ImGui::Text("FPS: %f", io.Framerate);
 		ImGui::Text("Window dimensions: %i x %i", windowWidth, windowHeight);
-		if (ImGui::CollapsingHeader("Shape 1"))
-		{
+		for (int i = 0; i < 5; i++) {
+			ImGui::PushID(i);
+			if (ImGui::CollapsingHeader("Shape"))
+			{
 
-			ImGui::DragFloat3("Translation", translation[0]);
-			ImGui::DragFloat3("Rotation", rotation[0]);
-			ImGui::DragFloat3("Scale", scale[0]);
-			ImGui::ColorEdit3("Color", colorOffset);
-
-		}
-		if (ImGui::CollapsingHeader("Shape 2"))
-		{
-			ImGui::DragFloat3("Translation", translation[1]);
-			ImGui::DragFloat3("Rotation", rotation[1]);
-			ImGui::DragFloat3("Scale", scale[1]);
-			ImGui::ColorEdit3("Color", colorOffset);
-		}
-		if (ImGui::CollapsingHeader("Shape 3"))
-		{
-			ImGui::DragFloat3("Translation", translation[2]);
-			ImGui::DragFloat3("Rotation", rotation[2]);
-			ImGui::DragFloat3("Scale", scale[2]);
-			ImGui::ColorEdit3("Color", colorOffset);
-		}
-		if (ImGui::CollapsingHeader("Shape 4"))
-		{
-			ImGui::DragFloat3("Translation", translation[3]);
-			ImGui::DragFloat3("Rotation", rotation[3]);
-			ImGui::DragFloat3("Scale", scale[3]);
-			ImGui::ColorEdit3("Color", colorOffset);
-
-		}
-		if (ImGui::CollapsingHeader("Shape 5"))
-		{
-			ImGui::DragFloat3("Translation", translation[4]);
-			ImGui::DragFloat3("Rotation", rotation[4]);
-			ImGui::DragFloat3("Scale", scale[4]);
-			ImGui::ColorEdit3("Color", colorOffset);
+				if (ImGui::DragFloat3("Translation", translation[i])) {
+					shapes[i]->GetTransform()->MoveAbsolute(XMFLOAT3(translation[i]));
+				}
+				if (ImGui::DragFloat3("Rotation", rotation[i])) {
+					shapes[i]->GetTransform()->Rotate(XMFLOAT3(rotation[i]));
+				}
+				if (ImGui::DragFloat3("Scale", scale[i])) {
+					shapes[i]->GetTransform()->Scale(XMFLOAT3(scale[i]));
+				}
+				ImGui::ColorEdit3("Color", colorOffset[i]);
+			}
+			ImGui::PopID();
 		}
 		ImGui::End();
-		//ImGui::CollapsingHeader("Test");
 	}
 
 	{
@@ -341,7 +321,7 @@ void Game::Update(float deltaTime, float totalTime)
 			shapes[0]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
 			shapes[1]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
 		}
-		else if (shapes[0]->GetTransform()->GetPosition().x > 0.0f) 
+		else if (shapes[0]->GetTransform()->GetPosition().x > 0.0f)
 		{
 			going = false;
 			shapes[0]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
@@ -355,7 +335,7 @@ void Game::Update(float deltaTime, float totalTime)
 		if (!going) {
 			shapes[3]->GetTransform()->Scale(0.999f, 0.999f, 1.0f);
 		}
-		else if(going){
+		else if (going) {
 			shapes[3]->GetTransform()->Scale(1.001f, 1.001f, 1.0f);
 		}
 
@@ -363,6 +343,22 @@ void Game::Update(float deltaTime, float totalTime)
 		shapes[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
 		shapes[4]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
 	}
+
+	/*
+	//Update values in Imgui
+	for (int i = 0; i < 5; i++) {
+		translation[i][0] = shapes[i]->GetTransform()->GetPosition().x;
+		translation[i][1] = shapes[i]->GetTransform()->GetPosition().y;
+		translation[i][2] = shapes[i]->GetTransform()->GetPosition().z;
+
+		rotation[i][0] = shapes[i]->GetTransform()->GetPitchYawRoll().x;
+		rotation[i][1] = shapes[i]->GetTransform()->GetPitchYawRoll().y;
+		rotation[i][2] = shapes[i]->GetTransform()->GetPitchYawRoll().z;
+
+		scale[i][0] = shapes[i]->GetTransform()->GetScale().x;
+		scale[i][1] = shapes[i]->GetTransform()->GetScale().y;
+		scale[i][2] = shapes[i]->GetTransform()->GetScale().z;
+	}*/
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
@@ -391,7 +387,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	for (int i = 0; i < 5; i++) {
 		//Shader data  - A
 		VertexShaderExternalData vsData;
-		vsData.colorTint = XMFLOAT4(colorOffset);
+		vsData.colorTint = XMFLOAT4(colorOffset[i]);
 		//Store the data from ImGui into the VShader data
 		vsData.worldMatrix = shapes[i]->GetTransform()->GetWorldMatrix();
 
