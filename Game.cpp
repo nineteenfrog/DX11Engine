@@ -290,7 +290,7 @@ void Game::Update(float deltaTime, float totalTime)
 		input.SetMouseCapture(io.WantCaptureMouse);
 
 		// Show the demo window
-		ImGui::ShowDemoWindow(); 
+		//ImGui::ShowDemoWindow(); 
 		ImGui::Begin("Window");
 		ImGui::Text("FPS: %f", io.Framerate);
 		ImGui::Text("Window dimensions: %i x %i", windowWidth, windowHeight);

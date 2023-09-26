@@ -7,6 +7,9 @@ Transform::Transform() {
 	position = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	rotation = XMFLOAT3(0.0f, 0.0f, 0.0f);
 	scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	up = XMFLOAT3(0.0, 1.0, 0.0);
+	right = XMFLOAT3(1.0, 0.0, 0.0);
+	forward = XMFLOAT3(0.0, 0.0, 1.0);
 	matrixChanged = false;
 	XMStoreFloat4x4(&world, XMMatrixIdentity());
 	XMStoreFloat4x4(&worldInverseTranspose, XMMatrixIdentity());
@@ -18,24 +21,49 @@ Transform::~Transform() {
 
 void Transform::UpdateMatrices() {
 	//do stuff (update matrix using values)
-	XMMATRIX translationMatrix = XMMatrixTranslation(position.x, position.y, position.z);
-	XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
-	XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
+	if (matrixChanged) {
+		XMMATRIX translationMatrix = XMMatrixTranslation(position.x, position.y, position.z);
+		XMMATRIX scaleMatrix = XMMatrixScaling(scale.x, scale.y, scale.z);
+		XMMATRIX rotationMatrix = XMMatrixRotationRollPitchYaw(rotation.x, rotation.y, rotation.z);
 
-	XMMATRIX worldXM = scaleMatrix * rotationMatrix * translationMatrix;
+		XMMATRIX worldXM = scaleMatrix * rotationMatrix * translationMatrix;
 
-	XMStoreFloat4x4(&world, worldXM);
-	XMStoreFloat4x4(&worldInverseTranspose, XMMatrixInverse(0, XMMatrixTranspose(worldXM)));
+		XMStoreFloat4x4(&world, worldXM);
+		XMStoreFloat4x4(&worldInverseTranspose, XMMatrixInverse(0, XMMatrixTranspose(worldXM)));
 
-	matrixChanged = false;
+		matrixChanged = false;
+	}
 }
 
 void Transform::MoveAbsolute(float x, float y, float z) {
+	UpdateMatrices(); //ADD THIS TO REST
 	SetPosition(position.x + x, position.y + y, position.z + z);
 }
 void Transform::MoveAbsolute(DirectX::XMFLOAT3 offset) {
 	SetPosition(position.x + offset.x, position.y + offset.y, position.z + offset.z);
 }
+
+void Transform::MoveRelative(float x, float y, float z)
+{
+	/*
+	movement = x,y,z,0
+	rotQuat = XMquaternionrotationrollpitchyawfromvector(&pitchyawroll)
+
+	relativedir = XMvector3rotate(movement,rotQuat)
+
+
+	
+	
+	
+	
+	*/
+}
+
+void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
+{
+
+}
+
 void Transform::Rotate(float pitch, float yaw, float roll) {
 	SetRotation(rotation.x + pitch, rotation.y + yaw, rotation.z + roll);
 }
@@ -112,4 +140,17 @@ DirectX::XMFLOAT4X4 Transform::GetWorldInverseTransposeMatrix() {
 	}
 
 	return worldInverseTranspose;
+}
+
+void Transform::UpdateVectors()
+{
+	//if (vectors changed) update!
+
+	//XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(&rotation from camera) //get rotation matrix
+	//XMStoreFloat3(&forward,XMVector3Rotate(XMVector(0,0,1,0),rotQuat))
+	//XMStoreFloat3(&right,XMVector3Rotate(XMVector(1,0,1,0),rotQuat))  //apply rotation to all vectors starting from zero 
+	//XMStoreFloat3(&up,XMVector3Rotate(XMVector(0,1,0,0),rotQuat))
+
+
+	//vectors changed = false //we are clean
 }
