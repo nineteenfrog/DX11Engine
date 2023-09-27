@@ -36,44 +36,44 @@ void Transform::UpdateMatrices() {
 }
 
 void Transform::MoveAbsolute(float x, float y, float z) {
-	UpdateMatrices(); //ADD THIS TO REST
+	UpdateMatrices();
 	SetPosition(position.x + x, position.y + y, position.z + z);
 }
 void Transform::MoveAbsolute(DirectX::XMFLOAT3 offset) {
+	UpdateMatrices();
 	SetPosition(position.x + offset.x, position.y + offset.y, position.z + offset.z);
 }
 
 void Transform::MoveRelative(float x, float y, float z)
 {
-	/*
-	movement = x,y,z,0
-	rotQuat = XMquaternionrotationrollpitchyawfromvector(&pitchyawroll)
+	XMVECTOR movement = { x, y, z, 0.0f };
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
 
-	relativedir = XMvector3rotate(movement,rotQuat)
-
-
-	
-	
-	
-	
-	*/
+	XMVECTOR relativedir = XMVector3Rotate(movement, rotQuat);
 }
 
 void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
 {
+	XMVECTOR movement = XMLoadFloat3(&offset);
+	XMVECTOR rotQuat = XMQuaternionRotationRollPitchYawFromVector(XMLoadFloat3(&rotation));
 
+	XMVECTOR relativedir = XMVector3Rotate(movement, rotQuat);
 }
 
 void Transform::Rotate(float pitch, float yaw, float roll) {
+	UpdateMatrices();
 	SetRotation(rotation.x + pitch, rotation.y + yaw, rotation.z + roll);
 }
 void Transform::Rotate(DirectX::XMFLOAT3 rotation) {
+	UpdateMatrices();
 	SetRotation(this->rotation.x + rotation.x, this->rotation.y + rotation.y, this->rotation.z + rotation.z);
 }
 void Transform::Scale(float x, float y, float z) {
+	UpdateMatrices();
 	SetScale(scale.x * x, scale.y * y, scale.z * z);
 }
 void Transform::Scale(DirectX::XMFLOAT3 scale) {
+	UpdateMatrices();
 	SetScale(this->scale.x * scale.x, this->scale.y * scale.y, this->scale.z * scale.z);
 }
 
