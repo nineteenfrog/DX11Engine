@@ -90,10 +90,12 @@ void Transform::MoveRelative(DirectX::XMFLOAT3 offset)
 void Transform::Rotate(float pitch, float yaw, float roll) {
 	UpdateMatrices();
 	SetRotation(rotation.x + pitch, rotation.y + yaw, rotation.z + roll);
+	UpdateVectors();
 }
 void Transform::Rotate(DirectX::XMFLOAT3 rotation) {
 	UpdateMatrices();
 	SetRotation(this->rotation.x + rotation.x, this->rotation.y + rotation.y, this->rotation.z + rotation.z);
+	UpdateVectors();
 }
 
 //SCALE
@@ -129,11 +131,13 @@ void Transform::SetRotation(float pitch, float yaw, float roll) {
 	this->rotation.z = roll;
 
 	matrixChanged = true;
+	vectorsChanged = true;
 }
 void Transform::SetRotation(DirectX::XMFLOAT3 rotation) {
 	this->rotation = rotation;
 
 	matrixChanged = true;
+	vectorsChanged = true;
 }
 void Transform::SetScale(float x, float y, float z) {
 	this->scale.x = x;

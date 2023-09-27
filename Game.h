@@ -77,6 +77,7 @@ private:
 	bool going = true;
 	int counter = 0;
 
-	std::shared_ptr<Camera> camera;
+	std::shared_ptr<Camera> camera[3];
+	int activeCamera = 0;
 };
 

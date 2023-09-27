@@ -8,7 +8,6 @@ public:
 
 	~Transform();
 
-	void UpdateMatrices();
 
 	void MoveAbsolute(float x, float y, float z);
 	void MoveAbsolute(DirectX::XMFLOAT3 offset);
@@ -53,6 +52,7 @@ private:
 	DirectX::XMFLOAT3 up;
 	bool vectorsChanged;
 
+	void UpdateMatrices();
 	void UpdateVectors();//updates fwd,right,up
 };
 

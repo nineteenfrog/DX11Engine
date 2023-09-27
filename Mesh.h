@@ -20,11 +20,14 @@ public:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffed();
 	int GetIndexCount();
 	void Draw();
+	void SetTint(float r, float g, float b, float a);
+	DirectX::XMFLOAT4 GetTint();
 
 private:
 	Microsoft::WRL::ComPtr<ID3D11Buffer> vertexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11Buffer> indexBuffer;
 	Microsoft::WRL::ComPtr<ID3D11DeviceContext> deviceContext;
 	int indexCount;
+	DirectX::XMFLOAT4 colorTint;
 };
 

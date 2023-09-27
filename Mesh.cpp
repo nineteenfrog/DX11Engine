@@ -75,3 +75,13 @@ void Mesh::Draw() {
 
 	deviceContext->DrawIndexed(indexCount, 0, 0);
 }
+
+void Mesh::SetTint(float r, float g, float b, float a)
+{
+	XMStoreFloat4(&colorTint, { r,g,b,a });
+}
+
+DirectX::XMFLOAT4 Mesh::GetTint()
+{
+	return colorTint;
+}

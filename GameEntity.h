@@ -2,6 +2,7 @@
 #include "Transform.h"
 #include "Mesh.h"
 #include <iostream>
+#include "Camera.h"
 
 class GameEntity
 {
@@ -12,8 +13,10 @@ public:
 
 	std::shared_ptr<Mesh> GetMesh();
 	std::shared_ptr<Transform> GetTransform();
-	void Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer, 
-		Microsoft::WRL::ComPtr<ID3D11DeviceContext> context);
+	void Draw(
+		Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer, 
+		Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
+		Camera camera);
 
 private:
 	std::shared_ptr<Transform> transform;

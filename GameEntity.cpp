@@ -26,14 +26,19 @@ std::shared_ptr<Transform> GameEntity::GetTransform()
 	return transform;
 }
 
-void GameEntity::Draw(Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer,
-	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context)
+void GameEntity::Draw(
+	Microsoft::WRL::ComPtr<ID3D11Buffer> vsConstantBuffer,
+	Microsoft::WRL::ComPtr<ID3D11DeviceContext> context,
+	Camera camera)
 {
 	mesh->Draw();
 	
 	//Shader data  - A
 	VertexShaderExternalData vsData;
+	vsData.colorTint = mesh->GetTint();
 	vsData.worldMatrix = transform->GetWorldMatrix();
+	vsData.viewMatrix = camera.GetView();
+	vsData.projectionMatrix = camera.GetProjection();
 
 	//Passing shader data with constant buffer
 	D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};

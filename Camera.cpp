@@ -19,7 +19,7 @@ Camera::Camera(
 	farP = 1000;
 	//setposition
 	transform = Transform();
-	transform.SetPosition(0, 0, 0);
+	transform.SetPosition(x, y, z);
 	//update matrices
 	UpdateViewMatrix();
 	UpdateProjectionMatrix(aspectRatio);
@@ -40,18 +40,18 @@ void Camera::Update(float dt)
 	
 	Input& input = Input::GetInstance();
 
-	if (input.KeyDown('W')) { transform.MoveRelative(0, 0, 1); }
-	if (input.KeyDown('A')) { transform.MoveRelative(-1, 0, 0); }
-	if (input.KeyDown('S')) { transform.MoveRelative(0, 0, -1); }
-	if (input.KeyDown('D')) { transform.MoveRelative(1, 0, 0); }
-	if (input.KeyDown('Q')) { transform.MoveRelative(0, 1, 0); }
-	if (input.KeyDown('E')) { transform.MoveRelative(0, -1, 0); }
+	if (input.KeyDown('W')) { transform.MoveRelative(0, 0, moveSpeed * dt); }
+	if (input.KeyDown('A')) { transform.MoveRelative(-moveSpeed * dt, 0, 0); }
+	if (input.KeyDown('S')) { transform.MoveRelative(0, 0, -moveSpeed * dt); }
+	if (input.KeyDown('D')) { transform.MoveRelative(moveSpeed * dt, 0, 0); }
+	if (input.KeyDown('Q')) { transform.MoveRelative(0, moveSpeed * dt, 0); }
+	if (input.KeyDown('E')) { transform.MoveRelative(0, -moveSpeed * dt, 0); }
 
 	if (input.MouseLeftDown()) {
-		float xDiff = mouseLookSpeed * input.GetMouseXDelta();
-		float yDiff = mouseLookSpeed * input.GetMouseYDelta();
+		int xDiff = mouseLookSpeed * input.GetMouseXDelta();
+		int yDiff = mouseLookSpeed * input.GetMouseYDelta();
 
-		transform.Rotate(xDiff, yDiff, 0);
+		transform.Rotate(yDiff * dt, xDiff * dt, 0); //not sure why the movement is flipped
 	}
 
 	UpdateViewMatrix();
@@ -83,7 +83,7 @@ void Camera::UpdateProjectionMatrix(float aspectRatio)
 
 Transform* Camera::GetTransform()
 {
-	return nullptr;
+	return &transform;
 }
 
 DirectX::XMFLOAT4X4 Camera::GetView()

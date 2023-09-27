@@ -110,7 +110,10 @@ void Game::Init()
 
 	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
 
-	camera = std::make_shared<Camera>(0, 0, 0, 10, 10, XM_PI/2, (float)this->windowWidth / this->windowHeight);
+	camera[0] = std::make_shared<Camera>(10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 2, (float)this->windowWidth / this->windowHeight);
+	camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
+	camera[2] = std::make_shared<Camera>(-10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 4, (float)this->windowWidth / this->windowHeight);
+
 }
 
 // --------------------------------------------------------
@@ -262,7 +265,9 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
-	camera->UpdateProjectionMatrix((float)this->windowWidth / this->windowHeight);
+	for (int i = 0; i < 3; i++) {
+		camera[i]->UpdateProjectionMatrix((float)this->windowWidth / this->windowHeight);
+	}
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 }
@@ -309,24 +314,29 @@ void Game::Update(float deltaTime, float totalTime)
 				if (ImGui::DragFloat3("Scale", scale[i])) {
 					shapes[i]->GetTransform()->Scale(XMFLOAT3(scale[i]));
 				}
-				ImGui::ColorEdit3("Color", colorOffset[i]);
+				if (ImGui::ColorEdit3("Color", colorOffset[i])) {
+					shapes[i]->GetMesh()->SetTint(colorOffset[i][0], colorOffset[i][1], colorOffset[i][2], colorOffset[i][3]);
+				}
 			}
 			ImGui::PopID();
 		}
 		ImGui::End();
+		if (input.KeyPress('C')) {
+			activeCamera = (activeCamera + 1) % 3;
+		}
 	}
 
 	{
 		//translation
 		if (shapes[0]->GetTransform()->GetPosition().x <= 1.0f && going) {
 			shapes[0]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
-			shapes[1]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
+			shapes[4]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
 		}
 		else if (shapes[0]->GetTransform()->GetPosition().x > 0.0f)
 		{
 			going = false;
 			shapes[0]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
-			shapes[1]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
+			shapes[4]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
 		}
 		else {
 			going = true;
@@ -334,18 +344,18 @@ void Game::Update(float deltaTime, float totalTime)
 
 		//scale
 		if (!going) {
-			shapes[3]->GetTransform()->Scale(0.999f, 0.999f, 1.0f);
+			shapes[2]->GetTransform()->Scale(0.999f, 0.999f, 1.0f);
 		}
 		else if (going) {
-			shapes[3]->GetTransform()->Scale(1.001f, 1.001f, 1.0f);
+			shapes[2]->GetTransform()->Scale(1.001f, 1.001f, 1.0f);
 		}
 
 		//rotation
-		shapes[2]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
-		shapes[4]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
+		shapes[3]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
+		shapes[1]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
 	}
 
-	camera->Update(deltaTime); 
+	camera[activeCamera]->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
@@ -373,23 +383,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
-		//Shader data  - A
-		VertexShaderExternalData vsData;
-		vsData.colorTint = XMFLOAT4(colorOffset[i]);
-		//Store the data from ImGui into the VShader data
-		vsData.worldMatrix = shapes[i]->GetTransform()->GetWorldMatrix();
-
-		//Passing shader data with constant buffer
-		D3D11_MAPPED_SUBRESOURCE mappedBuffer = {};
-		context->Map(vsConstantBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedBuffer);
-		memcpy(mappedBuffer.pData, &vsData, sizeof(vsData));
-		context->Unmap(vsConstantBuffer.Get(), 0);
-
-		context->VSSetConstantBuffers(
-			0, // Which slot (register) to bind the buffer to?
-			1, // How many are we activating? Can do multiple at once
-			vsConstantBuffer.GetAddressOf()); // Array of buffers (or the address of one)
-		shapes[i]->Draw(vsConstantBuffer, context);
+		shapes[i]->Draw(vsConstantBuffer, context, *camera[activeCamera]);
 	}
 	
 	// Frame END
