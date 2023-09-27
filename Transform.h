@@ -35,6 +35,10 @@ public:
 	DirectX::XMFLOAT3 GetScale();
 	DirectX::XMFLOAT4X4 GetWorldMatrix();
 	DirectX::XMFLOAT4X4 GetWorldInverseTransposeMatrix();
+	DirectX::XMFLOAT3 GetRight();
+	DirectX::XMFLOAT3 GetUp();
+	DirectX::XMFLOAT3 GetForward();
+
 private:
 	DirectX::XMFLOAT3 position;
 	DirectX::XMFLOAT3 rotation;
@@ -47,6 +51,7 @@ private:
 	DirectX::XMFLOAT3 forward;
 	DirectX::XMFLOAT3 right;
 	DirectX::XMFLOAT3 up;
+	bool vectorsChanged;
 
 	void UpdateVectors();//updates fwd,right,up
 };

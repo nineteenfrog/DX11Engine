@@ -9,6 +9,7 @@
 #include "ImGui/imgui_impl_dx11.h"
 #include "ImGui/imgui_impl_win32.h"
 #include "GameEntity.h"
+#include "Camera.h"
 
 class Game 
 	: public DXCore
@@ -75,5 +76,7 @@ private:
 	//Variables for shape movement
 	bool going = true;
 	int counter = 0;
+
+	std::shared_ptr<Camera> camera;
 };
 

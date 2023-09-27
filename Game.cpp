@@ -110,7 +110,7 @@ void Game::Init()
 
 	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
 
-
+	camera = std::make_shared<Camera>(0, 0, 0, 10, 10, XM_PI/2, (float)this->windowWidth / this->windowHeight);
 }
 
 // --------------------------------------------------------
@@ -262,6 +262,7 @@ void Game::CreateGeometry()
 // --------------------------------------------------------
 void Game::OnResize()
 {
+	camera->UpdateProjectionMatrix((float)this->windowWidth / this->windowHeight);
 	// Handle base-level DX resize stuff
 	DXCore::OnResize();
 }
@@ -344,21 +345,8 @@ void Game::Update(float deltaTime, float totalTime)
 		shapes[4]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
 	}
 
-	/*
-	//Update values in Imgui
-	for (int i = 0; i < 5; i++) {
-		translation[i][0] = shapes[i]->GetTransform()->GetPosition().x;
-		translation[i][1] = shapes[i]->GetTransform()->GetPosition().y;
-		translation[i][2] = shapes[i]->GetTransform()->GetPosition().z;
+	camera->Update(deltaTime); 
 
-		rotation[i][0] = shapes[i]->GetTransform()->GetPitchYawRoll().x;
-		rotation[i][1] = shapes[i]->GetTransform()->GetPitchYawRoll().y;
-		rotation[i][2] = shapes[i]->GetTransform()->GetPitchYawRoll().z;
-
-		scale[i][0] = shapes[i]->GetTransform()->GetScale().x;
-		scale[i][1] = shapes[i]->GetTransform()->GetScale().y;
-		scale[i][2] = shapes[i]->GetTransform()->GetScale().z;
-	}*/
 	// Example input checking: Quit if the escape key is pressed
 	if (Input::GetInstance().KeyDown(VK_ESCAPE))
 		Quit();
