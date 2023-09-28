@@ -95,3 +95,8 @@ DirectX::XMFLOAT4X4 Camera::GetProjection()
 {
 	return projectionMatrix;
 }
+
+float Camera::GetFov()
+{
+	return fov;
+}

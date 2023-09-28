@@ -320,6 +320,17 @@ void Game::Update(float deltaTime, float totalTime)
 			}
 			ImGui::PopID();
 		}
+		if (ImGui::CollapsingHeader("Camera Settings")) {
+			ImGui::Text("Camera %i x: %f y: %f z: %f",
+				(activeCamera % 3) + 1,
+				camera[activeCamera]->GetTransform()->GetPosition().x,
+				camera[activeCamera]->GetTransform()->GetPosition().y,
+				camera[activeCamera]->GetTransform()->GetPosition().z);
+			ImGui::Text("FOV: %f Radians", camera[activeCamera]->GetFov());
+			if (ImGui::Button("Change Camera")) {
+				activeCamera = (activeCamera + 1) % 3;
+			}
+		}
 		ImGui::End();
 		if (input.KeyPress('C')) {
 			activeCamera = (activeCamera + 1) % 3;

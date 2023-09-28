@@ -13,7 +13,7 @@ Transform::Transform() {
 	up = XMFLOAT3(0.0, 1.0, 0.0);
 	right = XMFLOAT3(1.0, 0.0, 0.0);
 	forward = XMFLOAT3(0.0, 0.0, 1.0);
-	bool vectorsChanged = false;
+	vectorsChanged = false;
 
 	XMStoreFloat4x4(&world, XMMatrixIdentity());
 	XMStoreFloat4x4(&worldInverseTranspose, XMMatrixIdentity());
