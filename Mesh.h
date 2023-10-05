@@ -16,6 +16,14 @@ public:
 		Microsoft::WRL::ComPtr<ID3D11Device> device);
 	~Mesh();
 
+	/*Mesh(obj file) {
+
+		sscanf_s(
+			chars,
+			"v %f %f %f",
+			x, y, z)
+	}
+	*/
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetVertexBuffer();
 	Microsoft::WRL::ComPtr<ID3D11Buffer> GetIndexBuffed();
 	int GetIndexCount();
