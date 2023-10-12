@@ -9,7 +9,7 @@ class Material
 public:
 	Material(DirectX::XMFLOAT4 colorTint,
 		std::shared_ptr<SimpleVertexShader> vs,
-		std::shared_ptr<SimpleVertexShader> ps);
+		std::shared_ptr<SimplePixelShader> ps);
 
 	std::shared_ptr<SimpleVertexShader> GetVertexShader();
 	std::shared_ptr<SimplePixelShader> GetPixelShader();

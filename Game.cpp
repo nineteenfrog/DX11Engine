@@ -2,7 +2,7 @@
 #include "Vertex.h"
 #include "Input.h"
 #include "PathHelpers.h"
-#include "BufferStructs.h"
+#include "Material.h"
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
@@ -62,7 +62,14 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
+	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
+	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
+	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
+	XMFLOAT4 magenta = XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f);
 	LoadShaders();
+	mat1 = std::make_shared<Material>(red, vertexShader, pixelShader);
+	mat2 = std::make_shared<Material>(green, vertexShader, pixelShader);
+	mat3 = std::make_shared<Material>(blue, vertexShader, pixelShader);
 	CreateGeometry();
 
 
@@ -86,18 +93,16 @@ void Game::Init()
 
 		ImGui::StyleColorsDark();
 	}
-	// Get size as the next multiple of 16 (instead of hardcoding a size here!)
-	unsigned int size = sizeof(VertexShaderExternalData);
-	size = (size + 15) / 16 * 16; // This will work even if the struct size changes
+	//// Get size as the next multiple of 16 (instead of hardcoding a size here!)
+	//unsigned int size = sizeof(VertexShaderExternalData);
+	//size = (size + 15) / 16 * 16; // This will work even if the struct size changes
 
-	// Describe the constant buffer
-	D3D11_BUFFER_DESC cbDesc = {}; // Sets struct to all zeros
-	cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	cbDesc.ByteWidth = size; // Must be a multiple of 16
-	cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	cbDesc.Usage = D3D11_USAGE_DYNAMIC;
-
-	device->CreateBuffer(&cbDesc, 0, vsConstantBuffer.GetAddressOf());
+	//// Describe the constant buffer
+	//D3D11_BUFFER_DESC cbDesc = {}; // Sets struct to all zeros
+	//cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	//cbDesc.ByteWidth = size; // Must be a multiple of 16
+	//cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
+	//cbDesc.Usage = D3D11_USAGE_DYNAMIC;
 
 	camera[0] = std::make_shared<Camera>(10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 2, (float)this->windowWidth / this->windowHeight);
 	camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
@@ -121,7 +126,7 @@ void Game::LoadShaders()
 		context,
 		FixPath(L"VertexShader.cso").c_str());
 	//pixel shader
-	vertexShader = std::make_shared<SimpleVertexShader>(
+	pixelShader = std::make_shared<SimplePixelShader>(
 		device,
 		context,
 		FixPath(L"PixelShader.cso").c_str());
@@ -167,7 +172,7 @@ void Game::CreateGeometry()
 	// - But just to see how it's done...
 	unsigned int indices[] = { 0, 1, 2 };
 
-	shapes[0] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
+	shapes[0] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device), mat1);
 
 	Vertex vertices1[] =
 	{
@@ -179,7 +184,7 @@ void Game::CreateGeometry()
 
 	unsigned int indices1[] = { 0, 1, 2, 0, 2, 3 };
 
-	shapes[1] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
+	shapes[1] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device), mat2);
 
 	Vertex vertices2[] =
 	{
@@ -191,11 +196,11 @@ void Game::CreateGeometry()
 
 	unsigned int indices2[] = { 2,0,1,2,1,3,2 };
 
-	shapes[2] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device));
+	shapes[2] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device), mat3);
 
 	//copied shapes
-	shapes[3] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device));
-	shapes[4] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device));
+	shapes[3] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device), mat1);
+	shapes[4] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device), mat2);
 }
 
 
@@ -335,7 +340,7 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
-		shapes[i]->Draw(vsConstantBuffer, context, *camera[activeCamera]);
+		shapes[i]->Draw(context, *camera[activeCamera]);
 	}
 
 	// Frame END
