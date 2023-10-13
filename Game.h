@@ -45,6 +45,7 @@ private:
 	// Shaders and shader-related constructs
 	std::shared_ptr<SimplePixelShader> pixelShader;
 	std::shared_ptr<SimpleVertexShader> vertexShader;
+	std::shared_ptr<SimplePixelShader> customShader;
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 	std::shared_ptr<GameEntity> shapes[5];
 	float translation[5][3] = {

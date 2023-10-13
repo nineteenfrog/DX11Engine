@@ -62,14 +62,13 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	XMFLOAT4 magenta = XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f);
+	XMFLOAT4 rose = XMFLOAT4(1.0f, 0.0f, 0.5f, 1.0f);
+	XMFLOAT4 springGreen = XMFLOAT4(0.0f, 1.0f, 0.5f, 1.0f);
+	XMFLOAT4 violet = XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f);
 	LoadShaders();
-	mat1 = std::make_shared<Material>(red, vertexShader, pixelShader);
-	mat2 = std::make_shared<Material>(green, vertexShader, pixelShader);
-	mat3 = std::make_shared<Material>(blue, vertexShader, pixelShader);
+	mat1 = std::make_shared<Material>(rose, vertexShader, pixelShader);
+	mat2 = std::make_shared<Material>(springGreen, vertexShader, pixelShader);
+	mat3 = std::make_shared<Material>(violet, vertexShader, customShader);
 	CreateGeometry();
 
 
@@ -93,16 +92,6 @@ void Game::Init()
 
 		ImGui::StyleColorsDark();
 	}
-	//// Get size as the next multiple of 16 (instead of hardcoding a size here!)
-	//unsigned int size = sizeof(VertexShaderExternalData);
-	//size = (size + 15) / 16 * 16; // This will work even if the struct size changes
-
-	//// Describe the constant buffer
-	//D3D11_BUFFER_DESC cbDesc = {}; // Sets struct to all zeros
-	//cbDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-	//cbDesc.ByteWidth = size; // Must be a multiple of 16
-	//cbDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-	//cbDesc.Usage = D3D11_USAGE_DYNAMIC;
 
 	camera[0] = std::make_shared<Camera>(10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 2, (float)this->windowWidth / this->windowHeight);
 	camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
@@ -130,6 +119,10 @@ void Game::LoadShaders()
 		device,
 		context,
 		FixPath(L"PixelShader.cso").c_str());
+	customShader = std::make_shared<SimplePixelShader>(
+		device,
+		context,
+		FixPath(L"CustomPS.cso").c_str());
 }
 
 
@@ -139,68 +132,45 @@ void Game::LoadShaders()
 // --------------------------------------------------------
 void Game::CreateGeometry()
 {
-	// Create some temporary variables to represent colors
-	// - Not necessary, just makes things more readable
-	XMFLOAT4 red = XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f);
-	XMFLOAT4 green = XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f);
-	XMFLOAT4 blue = XMFLOAT4(0.0f, 0.0f, 1.0f, 1.0f);
-	XMFLOAT4 magenta = XMFLOAT4(0.5f, 0.0f, 0.5f, 1.0f);
+	shapes[0] = std::make_shared<GameEntity>(
+		std::make_shared<Mesh>(
+			FixPath(L"../../Assets/Models/cube.obj").c_str(),
+			device,
+			context), 
+		mat3);
+	shapes[0]->GetTransform()->MoveAbsolute(-5, 0, 0);
 
-	// Set up the vertices of the triangle we would like to draw
-	// - We're going to copy this array, exactly as it exists in CPU memory
-	//    over to a Direct3D-controlled data structure on the GPU (the vertex buffer)
-	// - Note: Since we don't have a camera or really any concept of
-	//    a "3d world" yet, we're simply describing positions within the
-	//    bounds of how the rasterizer sees our screen: [-1 to +1] on X and Y
-	// - This means (0,0) is at the very center of the screen.
-	// - These are known as "Normalized Device Coordinates" or "Homogeneous 
-	//    Screen Coords", which are ways to describe a position without
-	//    knowing the exact size (in pixels) of the image/window/etc.  
-	// - Long story short: Resizing the window also resizes the triangle,
-	//    since we're describing the triangle in terms of the window itself
-	Vertex vertices[] =
-	{
-		{ XMFLOAT3(+0.0f, +0.5f, +0.0f), red },
-		{ XMFLOAT3(+0.5f, -0.5f, +0.0f), blue },
-		{ XMFLOAT3(-0.5f, -0.5f, +0.0f), green },
-	};
+	shapes[1] = std::make_shared<GameEntity>(
+		std::make_shared<Mesh>(
+			FixPath(L"../../Assets/Models/cylinder.obj").c_str(),
+			device,
+			context),
+		mat3);
+	shapes[1]->GetTransform()->MoveAbsolute(-2, 0, 0);
 
-	// Set up indices, which tell us which vertices to use and in which order
-	// - This is redundant for just 3 vertices, but will be more useful later
-	// - Indices are technically not required if the vertices are in the buffer 
-	//    in the correct order and each one will be used exactly once
-	// - But just to see how it's done...
-	unsigned int indices[] = { 0, 1, 2 };
+	shapes[2] = std::make_shared<GameEntity>(
+		std::make_shared<Mesh>(
+			FixPath(L"../../Assets/Models/helix.obj").c_str(),
+			device,
+			context),
+		mat3);
+	shapes[2]->GetTransform()->MoveAbsolute(1, 0, 0);
 
-	shapes[0] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device), mat1);
+	shapes[3] = std::make_shared<GameEntity>(
+		std::make_shared<Mesh>(
+			FixPath(L"../../Assets/Models/sphere.obj").c_str(),
+			device,
+			context),
+		mat3);
+	shapes[3]->GetTransform()->MoveAbsolute(4, 0, 0);
 
-	Vertex vertices1[] =
-	{
-		{ XMFLOAT3(-0.5f + 1, +0.5f + 1, +0.0f), red },
-		{ XMFLOAT3(+0.5f + 1, +0.5f + 1, +0.0f), blue },
-		{ XMFLOAT3(+0.5f + 1, -0.5f + 1, +0.0f), red },
-		{ XMFLOAT3(-0.5f + 1, -0.5f + 1, +0.0f), blue }
-	};
-
-	unsigned int indices1[] = { 0, 1, 2, 0, 2, 3 };
-
-	shapes[1] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device), mat2);
-
-	Vertex vertices2[] =
-	{
-		{ XMFLOAT3(+0.0f - 0.5, +0.3f + 0.5, +0.0f), red },
-		{ XMFLOAT3(+0.3f - 0.5, +0.0f + 0.5, +0.0f), blue },
-		{ XMFLOAT3(-0.3f - 0.5, +0.0f + 0.5, +0.0f), green },
-		{ XMFLOAT3(+0.0f - 0.5, -0.3f + 0.5, +0.0f), magenta }
-	};
-
-	unsigned int indices2[] = { 2,0,1,2,1,3,2 };
-
-	shapes[2] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices2, 4, indices2, 7, context, device), mat3);
-
-	//copied shapes
-	shapes[3] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices, 3, indices, 3, context, device), mat1);
-	shapes[4] = std::make_shared<GameEntity>(std::make_shared<Mesh>(vertices1, 4, indices1, 6, context, device), mat2);
+	shapes[4] = std::make_shared<GameEntity>(
+		std::make_shared<Mesh>(
+			FixPath(L"../../Assets/Models/torus.obj").c_str(),
+			device,
+			context),
+		mat3);
+	shapes[4]->GetTransform()->MoveAbsolute(7, 0, 0);
 }
 
 
@@ -282,36 +252,7 @@ void Game::Update(float deltaTime, float totalTime)
 			activeCamera = (activeCamera + 1) % 3;
 		}
 	}
-
-	{
-		//translation
-		if (shapes[0]->GetTransform()->GetPosition().x <= 1.0f && going) {
-			shapes[0]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
-			shapes[4]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
-		}
-		else if (shapes[0]->GetTransform()->GetPosition().x > 0.0f)
-		{
-			going = false;
-			shapes[0]->GetTransform()->MoveAbsolute(-0.001f, -0.001f, 0.0f);
-			shapes[4]->GetTransform()->MoveAbsolute(0.001f, 0.001f, 0.0f);
-		}
-		else {
-			going = true;
-		}
-
-		//scale
-		if (!going) {
-			shapes[2]->GetTransform()->Scale(0.999f, 0.999f, 1.0f);
-		}
-		else if (going) {
-			shapes[2]->GetTransform()->Scale(1.001f, 1.001f, 1.0f);
-		}
-
-		//rotation
-		shapes[3]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
-		shapes[1]->GetTransform()->Rotate(0.0f, 0.0f, deltaTime * XMConvertToRadians(10));
-	}
-
+	
 	camera[activeCamera]->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed

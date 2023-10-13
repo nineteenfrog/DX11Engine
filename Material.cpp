@@ -12,3 +12,5 @@ std::shared_ptr<SimplePixelShader> Material::GetPixelShader() { return pixelShad
 
 void Material::SetVertexShader(std::shared_ptr<SimpleVertexShader> vs) { this->vertexShader = vs; }
 void Material::SetPixelShader(std::shared_ptr<SimplePixelShader> ps) { this->pixelShader = ps; }
+
+DirectX::XMFLOAT4 Material::GetTint() { return colorTint; }
