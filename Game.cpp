@@ -66,9 +66,9 @@ void Game::Init()
 	XMFLOAT4 springGreen = XMFLOAT4(0.0f, 1.0f, 0.5f, 1.0f);
 	XMFLOAT4 violet = XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f);
 	LoadShaders();
-	mat1 = std::make_shared<Material>(rose, vertexShader, pixelShader);
-	mat2 = std::make_shared<Material>(springGreen, vertexShader, pixelShader);
-	mat3 = std::make_shared<Material>(violet, vertexShader, customShader);
+	mat1 = std::make_shared<Material>(rose, vertexShader, pixelShader, 0.0);
+	mat2 = std::make_shared<Material>(springGreen, vertexShader, pixelShader, 0.0);
+	mat3 = std::make_shared<Material>(violet, vertexShader, customShader, 0.0);
 	CreateGeometry();
 
 
@@ -137,7 +137,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/cube.obj").c_str(),
 			device,
 			context), 
-		mat3);
+		mat1);
 	shapes[0]->GetTransform()->MoveAbsolute(-5, 0, 0);
 
 	shapes[1] = std::make_shared<GameEntity>(
@@ -145,7 +145,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/cylinder.obj").c_str(),
 			device,
 			context),
-		mat3);
+		mat1);
 	shapes[1]->GetTransform()->MoveAbsolute(-2, 0, 0);
 
 	shapes[2] = std::make_shared<GameEntity>(
@@ -153,7 +153,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/helix.obj").c_str(),
 			device,
 			context),
-		mat3);
+		mat1);
 	shapes[2]->GetTransform()->MoveAbsolute(1, 0, 0);
 
 	shapes[3] = std::make_shared<GameEntity>(
@@ -161,7 +161,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/sphere.obj").c_str(),
 			device,
 			context),
-		mat3);
+		mat1);
 	shapes[3]->GetTransform()->MoveAbsolute(4, 0, 0);
 
 	shapes[4] = std::make_shared<GameEntity>(
@@ -169,7 +169,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/torus.obj").c_str(),
 			device,
 			context),
-		mat3);
+		mat1);
 	shapes[4]->GetTransform()->MoveAbsolute(7, 0, 0);
 }
 
@@ -279,8 +279,13 @@ void Game::Draw(float deltaTime, float totalTime)
 		context->ClearDepthStencilView(depthBufferDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
 	}
 
+	//setting Ambien color for material
+	XMFLOAT3 ambientColor = XMFLOAT3(0.0f, 0.1f, 0.2f);
+
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
+		//set the ambient color
+		shapes[i]->GetMaterial()->GetPixelShader()->SetFloat3("ambientColor", ambientColor);
 		shapes[i]->Draw(context, *camera[activeCamera]);
 	}
 
