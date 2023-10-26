@@ -7,6 +7,7 @@ cbuffer ExternalData : register(b0)
     float3 cameraPos;
     float roughness;
     float3 ambientColor;
+    Light directionalLight1;
 }
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -26,6 +27,16 @@ struct VertexToPixel
     float worldPosition		: POSITION;
 };
 
+float3 normalizeLightDirection(float3 lightDirection)
+{
+    return normalize(-lightDirection);
+}
+
+float3 diffuse(float3 normal, float3 dirToLight)
+{
+    return saturate(dot(normal, dirToLight));
+}
+
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -39,6 +50,10 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
     input.normal = normalize(input.normal);
     
-    float4 color = float4(input.normal, 1.0);
-    return color;
+    float3 lightDir = normalizeLightDirection(directionalLight1.direction);
+    float3 surfaceColor = float3(colorTint.xyz);
+    
+    float3 color = (diffuse(input.normal, lightDir) * directionalLight1.color * surfaceColor)
+                    + (ambientColor * surfaceColor);
+    return float4(color, 1.0f);
 }

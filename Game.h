@@ -11,6 +11,7 @@
 #include "GameEntity.h"
 #include "Camera.h"
 #include "SimpleShader.h"
+#include "Lights.h"
 
 class Game
 	: public DXCore
@@ -83,5 +84,7 @@ private:
 
 	std::shared_ptr<Camera> camera[3];
 	int activeCamera = 0;
+
+	Light directionalLight1;
 };
 

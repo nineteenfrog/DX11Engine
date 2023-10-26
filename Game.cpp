@@ -97,6 +97,11 @@ void Game::Init()
 	camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
 	camera[2] = std::make_shared<Camera>(-10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 4, (float)this->windowWidth / this->windowHeight);
 
+	directionalLight1 = {};
+	directionalLight1.type = LIGHT_TYPE_DIRECTIONAL;
+	directionalLight1.direction = XMFLOAT3(1, 0, 0);
+	directionalLight1.color = XMFLOAT3(1, 0, 0);
+	directionalLight1.intensity = 1.0f;
 }
 
 // --------------------------------------------------------
@@ -281,6 +286,11 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//setting Ambien color for material
 	XMFLOAT3 ambientColor = XMFLOAT3(0.0f, 0.1f, 0.2f);
+
+	mat1->GetPixelShader()->SetData(
+		"directionalLight1",
+		&directionalLight1,
+		sizeof(Light));
 
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
