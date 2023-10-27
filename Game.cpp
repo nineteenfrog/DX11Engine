@@ -62,7 +62,7 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
-	XMFLOAT4 rose = XMFLOAT4(1.0f, 0.0f, 0.5f, 1.0f);
+	XMFLOAT4 rose = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 	XMFLOAT4 springGreen = XMFLOAT4(0.0f, 1.0f, 0.5f, 1.0f);
 	XMFLOAT4 violet = XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f);
 	LoadShaders();
@@ -99,9 +99,44 @@ void Game::Init()
 
 	directionalLight1 = {};
 	directionalLight1.type = LIGHT_TYPE_DIRECTIONAL;
-	directionalLight1.direction = XMFLOAT3(1, 0, 0);
-	directionalLight1.color = XMFLOAT3(1, 0, 0);
+	directionalLight1.direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	directionalLight1.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
 	directionalLight1.intensity = 1.0f;
+
+	directionalLight2 = {};
+	directionalLight2.type = LIGHT_TYPE_DIRECTIONAL;
+	directionalLight2.direction = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	directionalLight2.color = XMFLOAT3(0.0f, 1.0f, 0.0f);
+	directionalLight2.intensity = 1.0f;
+
+	directionalLight3 = {};
+	directionalLight3.type = LIGHT_TYPE_DIRECTIONAL;
+	directionalLight3.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	directionalLight3.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	directionalLight3.intensity = 1.0f;
+
+	pointLight1 = {};
+	pointLight1.type = LIGHT_TYPE_POINT;
+	pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	pointLight1.color = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	pointLight1.intensity = 1.0f;
+	pointLight1.position = XMFLOAT3(0.0f, 0.0f, 1.0f);
+
+	pointLight1 = {};
+	pointLight1.type = LIGHT_TYPE_POINT;
+	pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
+	pointLight1.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	pointLight1.position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+	pointLight1.intensity = 1.0f;
+	pointLight1.range = 100.0f;
+
+	pointLight2 = {};
+	pointLight2.type = LIGHT_TYPE_POINT;
+	pointLight2.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
+	pointLight2.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+	pointLight2.position = XMFLOAT3(0.0f, -1.0f, 0.0f);
+	pointLight2.intensity = 1.0f;
+	pointLight2.range = 100.0f;
 }
 
 // --------------------------------------------------------
@@ -252,6 +287,54 @@ void Game::Update(float deltaTime, float totalTime)
 				activeCamera = (activeCamera + 1) % 3;
 			}
 		}
+		if (ImGui::CollapsingHeader("Light Settings")) {
+			ImGui::Text("Directional Light 1 x: %f y: %f z: %f",
+				directionalLight1.direction.x,
+				directionalLight1.direction.y,
+				directionalLight1.direction.z);
+			ImGui::PushID(6);
+			if (ImGui::ColorEdit3("Color", colorOffset[0])) {
+				directionalLight1.color = XMFLOAT3(colorOffset[0][0], colorOffset[0][1], colorOffset[0][2]);
+			}
+			ImGui::PopID();
+			ImGui::Text("Directional Light 2 x: %f y: %f z: %f",
+				directionalLight2.direction.x,
+				directionalLight2.direction.y,
+				directionalLight2.direction.z);
+			ImGui::PushID(7);
+			if (ImGui::ColorEdit3("Color", colorOffset[1])) {
+				directionalLight2.color = XMFLOAT3(colorOffset[1][0], colorOffset[1][1], colorOffset[1][2]);
+			}
+			ImGui::PopID();
+			ImGui::Text("Directional Light 3 x: %f y: %f z: %f",
+				directionalLight3.direction.x,
+				directionalLight3.direction.y,
+				directionalLight3.direction.z);
+			ImGui::PushID(8);
+			if (ImGui::ColorEdit3("Color", colorOffset[2])) {
+				directionalLight2.color = XMFLOAT3(colorOffset[2][0], colorOffset[2][1], colorOffset[2][2]);
+			}
+			ImGui::PopID();
+			ImGui::Text("Point Light 1 x: %f y: %f z: %f",
+				pointLight1.direction.x,
+				pointLight1.direction.y,
+				pointLight1.direction.z);
+			ImGui::PushID(9);
+			if (ImGui::ColorEdit3("Color", colorOffset[3])) {
+				pointLight1.color = XMFLOAT3(colorOffset[3][0], colorOffset[3][1], colorOffset[3][2]);
+			}
+			ImGui::PopID();
+			ImGui::Text("Point Light 2 x: %f y: %f z: %f",
+				pointLight2.direction.x,
+				pointLight2.direction.y,
+				pointLight2.direction.z);
+			ImGui::PushID(10);
+			if (ImGui::ColorEdit3("Color", colorOffset[4])) {
+				pointLight2.color = XMFLOAT3(colorOffset[4][0], colorOffset[4][1], colorOffset[4][2]);
+			}
+			ImGui::PopID();
+		}
+		
 		ImGui::End();
 		if (input.KeyPress('C')) {
 			activeCamera = (activeCamera + 1) % 3;
@@ -292,6 +375,26 @@ void Game::Draw(float deltaTime, float totalTime)
 		&directionalLight1,
 		sizeof(Light));
 
+	mat1->GetPixelShader()->SetData(
+		"directionalLight2",
+		&directionalLight2,
+		sizeof(Light));
+
+	mat1->GetPixelShader()->SetData(
+		"directionalLight3",
+		&directionalLight3,
+		sizeof(Light));
+
+	mat1->GetPixelShader()->SetData(
+		"pointLight1",
+		&pointLight1,
+		sizeof(Light));
+
+	mat1->GetPixelShader()->SetData(
+		"pointLight2",
+		&pointLight2,
+		sizeof(Light));
+	
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
 		//set the ambient color

@@ -14,8 +14,6 @@ struct Light
     float3 color; // All lights need a color
     float spotFallOff; // Spot lights need a value to define their “cone” size
     float3 padding; // Purposefully padding to hit the 16-byte boundary
-    
 };
-
 
 #endif

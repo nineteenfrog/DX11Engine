@@ -8,6 +8,10 @@ cbuffer ExternalData : register(b0)
     float roughness;
     float3 ambientColor;
     Light directionalLight1;
+    Light directionalLight2;
+    Light directionalLight3;
+    Light pointLight1;
+    Light pointLight2;
 }
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -37,6 +41,50 @@ float3 diffuse(float3 normal, float3 dirToLight)
     return saturate(dot(normal, dirToLight));
 }
 
+float3 calculateDirLight(Light light, VertexToPixel input)
+{
+    float3 lightDir = normalizeLightDirection(light.direction);
+    float3 surfaceColor = colorTint.rgb;
+    
+    float3 color = (diffuse(input.normal, lightDir) * light.color * surfaceColor)
+                    + (ambientColor * surfaceColor);
+    
+    float3 V = normalize(cameraPos - input.worldPosition);
+    float3 R = reflect(lightDir, input.normal);
+    float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
+
+    float spec = pow(saturate(dot(R, V)), specExponent);
+        
+    float3 lightFinal = surfaceColor * (color + spec); // Tint specular?
+    
+    return lightFinal;
+}
+
+float3 calculatePointLight(Light light, VertexToPixel input)
+{
+    float3 lightDir = normalizeLightDirection(light.position - input.worldPosition);
+    float3 surfaceColor = colorTint.rgb;
+    
+    float3 color = (diffuse(input.normal, lightDir) * light.color * surfaceColor)
+                    + (ambientColor * surfaceColor);
+    
+    float3 V = normalize(cameraPos - input.worldPosition);
+    float3 R = reflect(lightDir, input.normal);
+    float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
+
+    float spec = pow(saturate(dot(R, V)), specExponent);
+        
+    float3 lightFinal = surfaceColor * (color + spec); // Tint specular?
+    
+    return lightFinal;
+}
+
+float Attenuate(Light light, float3 worldPos)
+{
+    float dist = distance(light.position, worldPos);
+    float att = saturate(1.0f - (dist * dist / (light.range * light.range)));
+    return att * att;
+}
 // --------------------------------------------------------
 // The entry point (main method) for our pixel shader
 // 
@@ -50,10 +98,12 @@ float4 main(VertexToPixel input) : SV_TARGET
 {
     input.normal = normalize(input.normal);
     
-    float3 lightDir = normalizeLightDirection(directionalLight1.direction);
-    float3 surfaceColor = float3(colorTint.xyz);
     
-    float3 color = (diffuse(input.normal, lightDir) * directionalLight1.color * surfaceColor)
-                    + (ambientColor * surfaceColor);
-    return float4(color, 1.0f);
+    float3 totalLight = calculateDirLight(directionalLight1, input) +
+                        calculateDirLight(directionalLight2, input) +
+                        calculateDirLight(directionalLight3, input) +
+                        (calculatePointLight(pointLight1, input)  * Attenuate(pointLight1, input.worldPosition)) +
+                        (calculatePointLight(pointLight2, input) * Attenuate(pointLight2, input.worldPosition));
+    
+    return float4(totalLight,1.0f);
 }
