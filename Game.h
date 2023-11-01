@@ -33,6 +33,7 @@ private:
 	// Initialization helper methods - feel free to customize, combine, remove, etc.
 	void LoadShaders();
 	void CreateGeometry();
+	void LoadTextures();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -90,5 +91,8 @@ private:
 	Light directionalLight3;
 	Light pointLight1;
 	Light pointLight2;
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvTiles;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvRust;
 };
 

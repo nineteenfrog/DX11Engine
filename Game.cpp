@@ -67,11 +67,10 @@ void Game::Init()
 	XMFLOAT4 springGreen = XMFLOAT4(0.0f, 1.0f, 0.5f, 1.0f);
 	XMFLOAT4 violet = XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f);
 	LoadShaders();
-	mat1 = std::make_shared<Material>(rose, vertexShader, pixelShader, 0.0);
+	LoadTextures();
 	mat2 = std::make_shared<Material>(springGreen, vertexShader, pixelShader, 0.0);
 	mat3 = std::make_shared<Material>(violet, vertexShader, customShader, 0.0);
 	CreateGeometry();
-
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -94,50 +93,53 @@ void Game::Init()
 		ImGui::StyleColorsDark();
 	}
 
-	camera[0] = std::make_shared<Camera>(10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 2, (float)this->windowWidth / this->windowHeight);
-	camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
-	camera[2] = std::make_shared<Camera>(-10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 4, (float)this->windowWidth / this->windowHeight);
+	//camera and lights stuff
+	{
+		camera[0] = std::make_shared<Camera>(10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 2, (float)this->windowWidth / this->windowHeight);
+		camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
+		camera[2] = std::make_shared<Camera>(-10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 4, (float)this->windowWidth / this->windowHeight);
 
-	directionalLight1 = {};
-	directionalLight1.type = LIGHT_TYPE_DIRECTIONAL;
-	directionalLight1.direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
-	directionalLight1.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
-	directionalLight1.intensity = 1.0f;
+		directionalLight1 = {};
+		directionalLight1.type = LIGHT_TYPE_DIRECTIONAL;
+		directionalLight1.direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
+		directionalLight1.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+		directionalLight1.intensity = 1.0f;
 
-	directionalLight2 = {};
-	directionalLight2.type = LIGHT_TYPE_DIRECTIONAL;
-	directionalLight2.direction = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	directionalLight2.color = XMFLOAT3(0.0f, 1.0f, 0.0f);
-	directionalLight2.intensity = 1.0f;
+		directionalLight2 = {};
+		directionalLight2.type = LIGHT_TYPE_DIRECTIONAL;
+		directionalLight2.direction = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		directionalLight2.color = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		directionalLight2.intensity = 1.0f;
 
-	directionalLight3 = {};
-	directionalLight3.type = LIGHT_TYPE_DIRECTIONAL;
-	directionalLight3.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	directionalLight3.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	directionalLight3.intensity = 1.0f;
+		directionalLight3 = {};
+		directionalLight3.type = LIGHT_TYPE_DIRECTIONAL;
+		directionalLight3.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		directionalLight3.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		directionalLight3.intensity = 1.0f;
 
-	pointLight1 = {};
-	pointLight1.type = LIGHT_TYPE_POINT;
-	pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
-	pointLight1.color = XMFLOAT3(0.0f, 0.0f, -1.0f);
-	pointLight1.intensity = 1.0f;
-	pointLight1.position = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		pointLight1 = {};
+		pointLight1.type = LIGHT_TYPE_POINT;
+		pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
+		pointLight1.color = XMFLOAT3(0.0f, 0.0f, -1.0f);
+		pointLight1.intensity = 1.0f;
+		pointLight1.position = XMFLOAT3(0.0f, 0.0f, 1.0f);
 
-	pointLight1 = {};
-	pointLight1.type = LIGHT_TYPE_POINT;
-	pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
-	pointLight1.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	pointLight1.position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-	pointLight1.intensity = 1.0f;
-	pointLight1.range = 100.0f;
+		pointLight1 = {};
+		pointLight1.type = LIGHT_TYPE_POINT;
+		pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
+		pointLight1.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		pointLight1.position = XMFLOAT3(0.0f, 0.0f, 0.0f);
+		pointLight1.intensity = 1.0f;
+		pointLight1.range = 100.0f;
 
-	pointLight2 = {};
-	pointLight2.type = LIGHT_TYPE_POINT;
-	pointLight2.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
-	pointLight2.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
-	pointLight2.position = XMFLOAT3(0.0f, -1.0f, 0.0f);
-	pointLight2.intensity = 1.0f;
-	pointLight2.range = 100.0f;
+		pointLight2 = {};
+		pointLight2.type = LIGHT_TYPE_POINT;
+		pointLight2.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
+		pointLight2.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+		pointLight2.position = XMFLOAT3(0.0f, -1.0f, 0.0f);
+		pointLight2.intensity = 1.0f;
+		pointLight2.range = 100.0f;
+	}
 }
 
 // --------------------------------------------------------
@@ -166,7 +168,35 @@ void Game::LoadShaders()
 		FixPath(L"CustomPS.cso").c_str());
 }
 
+void Game::LoadTextures()
+{
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+	D3D11_SAMPLER_DESC samplerDescription = {};
+	samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescription.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDescription.MaxAnisotropy = 8;
+	samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
 
+	device->CreateSamplerState(&samplerDescription, samplerState.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/brokentiles.png").c_str(),
+		0, srvTiles.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/rustymetal.png").c_str(),
+		0, srvRust.GetAddressOf());
+
+	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
+	mat1->AddTextureSRV("SurfaceTexture", srvTiles);
+	mat1->AddSampler("BasicSampler", samplerState);
+}
 
 // --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now
@@ -213,6 +243,8 @@ void Game::CreateGeometry()
 		mat1);
 	shapes[4]->GetTransform()->MoveAbsolute(7, 0, 0);
 }
+
+
 
 
 // --------------------------------------------------------
@@ -396,31 +428,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		&pointLight2,
 		sizeof(Light));
 	
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvTiles;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/brokentiles.png").c_str(),
-		0, srvTiles.GetAddressOf());
-
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvRust;
-	CreateWICTextureFromFile(
-		device.Get(),
-		context.Get(),
-		FixPath(L"../../Assets/Textures/rustymetal.png").c_str(),
-		0, srvRust.GetAddressOf());
-
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
-	D3D11_SAMPLER_DESC samplerDescription = {};
-	samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-	samplerDescription.Filter = D3D11_FILTER_ANISOTROPIC;
-	samplerDescription.MaxAnisotropy = 8;
-	samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
-
-	device->CreateSamplerState(&samplerDescription, samplerState.GetAddressOf());
-
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
 		//set the ambient color

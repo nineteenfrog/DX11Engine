@@ -1,6 +1,8 @@
 #include "Include.hlsli"
 
 //Constant buffer
+
+
 cbuffer ExternalData : register(b0)
 {
     float4 colorTint;
@@ -13,6 +15,10 @@ cbuffer ExternalData : register(b0)
     Light pointLight1;
     Light pointLight2;
 }
+
+Texture2D SurfaceTexture    : register(t0); // "t" registers for textures
+SamplerState BasicSampler   : register(s0); // "s" registers for samplers
+
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
 // - The name of the struct itself is unimportant
@@ -28,7 +34,7 @@ struct VertexToPixel
 	float4 screenPosition	: SV_POSITION;
     float2 uv				: TEXCOORD;
     float3 normal			: NORMAL;
-    float worldPosition		: POSITION;
+    float3 worldPosition	: POSITION;
 };
 
 float3 normalizeLightDirection(float3 lightDirection)
@@ -104,6 +110,8 @@ float4 main(VertexToPixel input) : SV_TARGET
                         calculateDirLight(directionalLight3, input) +
                         (calculatePointLight(pointLight1, input)  * Attenuate(pointLight1, input.worldPosition)) +
                         (calculatePointLight(pointLight2, input) * Attenuate(pointLight2, input.worldPosition));
+
+    float3 surfaceColor = SurfaceTexture.Sample(BasicSampler, input.uv).rgb;
     
-    return float4(totalLight,1.0f);
+    return float4(surfaceColor, 1.0f);
 }
