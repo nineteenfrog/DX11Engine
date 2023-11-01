@@ -3,6 +3,7 @@
 #include "Input.h"
 #include "PathHelpers.h"
 #include "Material.h"
+#include "WICTextureLoader.h"
 
 // Needed for a helper function to load pre-compiled shader files
 #pragma comment(lib, "d3dcompiler.lib")
@@ -395,6 +396,31 @@ void Game::Draw(float deltaTime, float totalTime)
 		&pointLight2,
 		sizeof(Light));
 	
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvTiles;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/brokentiles.png").c_str(),
+		0, srvTiles.GetAddressOf());
+
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvRust;
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/rustymetal.png").c_str(),
+		0, srvRust.GetAddressOf());
+
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
+	D3D11_SAMPLER_DESC samplerDescription = {};
+	samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescription.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+	samplerDescription.Filter = D3D11_FILTER_ANISOTROPIC;
+	samplerDescription.MaxAnisotropy = 8;
+	samplerDescription.MaxLOD = D3D11_FLOAT32_MAX;
+
+	device->CreateSamplerState(&samplerDescription, samplerState.GetAddressOf());
+
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
 		//set the ambient color

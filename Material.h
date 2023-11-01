@@ -3,6 +3,7 @@
 #include <memory>
 #include <DirectXMath.h>
 #include "SimpleShader.h"
+#include <unordered_map>
 
 class Material
 {
@@ -23,6 +24,8 @@ private:
 	DirectX::XMFLOAT4 colorTint;
 	std::shared_ptr<SimpleVertexShader> vertexShader;
 	std::shared_ptr<SimplePixelShader> pixelShader;
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11ShaderResourceView>> textureSRVs;
+	std::unordered_map<std::string, Microsoft::WRL::ComPtr<ID3D11SamplerState>> samplers;
 	float roughness;
 };
 
