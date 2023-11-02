@@ -34,6 +34,11 @@ Game::Game(HINSTANCE hInstance)
 	CreateConsoleWindow(500, 120, 32, 120);
 	printf("Console window created successfully.  Feel free to printf() here.\n");
 #endif
+	directionalLight1 = {};
+	directionalLight2 = {};
+	directionalLight3 = {};
+	pointLight1 = {};
+	pointLight2 = {};
 }
 
 // --------------------------------------------------------
@@ -99,25 +104,21 @@ void Game::Init()
 		camera[1] = std::make_shared<Camera>(0.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 3, (float)this->windowWidth / this->windowHeight);
 		camera[2] = std::make_shared<Camera>(-10.0f, 0.0f, -10.0f, 5.0f, 10.0f, XM_PI / 4, (float)this->windowWidth / this->windowHeight);
 
-		directionalLight1 = {};
 		directionalLight1.type = LIGHT_TYPE_DIRECTIONAL;
 		directionalLight1.direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
 		directionalLight1.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		directionalLight1.intensity = 0.5f;
 
-		directionalLight2 = {};
 		directionalLight2.type = LIGHT_TYPE_DIRECTIONAL;
 		directionalLight2.direction = XMFLOAT3(0.0f, 1.0f, 0.0f);
 		directionalLight2.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		directionalLight2.intensity = 0.5f;
 
-		directionalLight3 = {};
 		directionalLight3.type = LIGHT_TYPE_DIRECTIONAL;
 		directionalLight3.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
 		directionalLight3.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		directionalLight3.intensity = 0.5f;
 
-		pointLight1 = {};
 		pointLight1.type = LIGHT_TYPE_POINT;
 		pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
 		pointLight1.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
@@ -125,7 +126,6 @@ void Game::Init()
 		pointLight1.intensity = 0.5f;
 		pointLight1.range = 100.0f;
 
-		pointLight2 = {};
 		pointLight2.type = LIGHT_TYPE_POINT;
 		pointLight2.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
 		pointLight2.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
