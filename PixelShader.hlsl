@@ -50,7 +50,7 @@ float3 calculateDirLight(Light light, VertexToPixel input, float3 baseColor)
     float3 lightDir = normalizeLightDirection(light.direction);
     float3 surfaceColor = colorTint.rgb * baseColor;
     
-    float3 V = normalize(cameraPos - input.worldPosition);
+    float3 V = normalize(input.worldPosition - cameraPos);
     float3 R = reflect(lightDir, input.normal);
     float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 
@@ -75,7 +75,7 @@ float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor)
     float3 lightDir = normalizeLightDirection(input.worldPosition - light.position);
     float3 surfaceColor = colorTint.rgb * baseColor;
     
-    float3 V = normalize(cameraPos - input.worldPosition);
+    float3 V = normalize(input.worldPosition - cameraPos);
     float3 R = reflect(lightDir, input.normal);
     float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 

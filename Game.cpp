@@ -341,7 +341,7 @@ void Game::Update(float deltaTime, float totalTime)
 				directionalLight3.direction.z);
 			ImGui::PushID(8);
 			if (ImGui::ColorEdit3("Color", colorOffset[2])) {
-				directionalLight2.color = XMFLOAT3(colorOffset[2][0], colorOffset[2][1], colorOffset[2][2]);
+				directionalLight3.color = XMFLOAT3(colorOffset[2][0], colorOffset[2][1], colorOffset[2][2]);
 			}
 			ImGui::PopID();
 			ImGui::Text("Point Light 1 x: %f y: %f z: %f",
