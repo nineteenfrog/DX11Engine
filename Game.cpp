@@ -102,42 +102,35 @@ void Game::Init()
 		directionalLight1 = {};
 		directionalLight1.type = LIGHT_TYPE_DIRECTIONAL;
 		directionalLight1.direction = XMFLOAT3(1.0f, 0.0f, 0.0f);
-		directionalLight1.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
-		directionalLight1.intensity = 1.0f;
+		directionalLight1.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight1.intensity = 0.5f;
 
 		directionalLight2 = {};
 		directionalLight2.type = LIGHT_TYPE_DIRECTIONAL;
 		directionalLight2.direction = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		directionalLight2.color = XMFLOAT3(0.0f, 1.0f, 0.0f);
-		directionalLight2.intensity = 1.0f;
+		directionalLight2.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight2.intensity = 0.5f;
 
 		directionalLight3 = {};
 		directionalLight3.type = LIGHT_TYPE_DIRECTIONAL;
 		directionalLight3.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		directionalLight3.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		directionalLight3.intensity = 1.0f;
+		directionalLight3.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
+		directionalLight3.intensity = 0.5f;
 
 		pointLight1 = {};
 		pointLight1.type = LIGHT_TYPE_POINT;
 		pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
-		pointLight1.color = XMFLOAT3(0.0f, 0.0f, -1.0f);
-		pointLight1.intensity = 1.0f;
+		pointLight1.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		pointLight1.position = XMFLOAT3(0.0f, 0.0f, 1.0f);
-
-		pointLight1 = {};
-		pointLight1.type = LIGHT_TYPE_POINT;
-		pointLight1.direction = XMFLOAT3(0.0f, 0.0f, -1.0f);
-		pointLight1.color = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		pointLight1.position = XMFLOAT3(0.0f, 0.0f, 0.0f);
-		pointLight1.intensity = 1.0f;
+		pointLight1.intensity = 0.5f;
 		pointLight1.range = 100.0f;
 
 		pointLight2 = {};
 		pointLight2.type = LIGHT_TYPE_POINT;
 		pointLight2.direction = XMFLOAT3(0.0f, 0.0f, 1.0f);
-		pointLight2.color = XMFLOAT3(1.0f, 0.0f, 0.0f);
+		pointLight2.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		pointLight2.position = XMFLOAT3(0.0f, -1.0f, 0.0f);
-		pointLight2.intensity = 1.0f;
+		pointLight2.intensity = 0.5f;
 		pointLight2.range = 100.0f;
 	}
 }
@@ -194,8 +187,11 @@ void Game::LoadTextures()
 		0, srvRust.GetAddressOf());
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
-	mat1->AddTextureSRV("SurfaceTexture", srvTiles);
 	mat1->AddSampler("BasicSampler", samplerState);
+	mat1->AddTextureSRV("SurfaceTexture", srvTiles);
+
+	mat1->PrepareMaterial();
+
 }
 
 // --------------------------------------------------------
