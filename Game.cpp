@@ -183,12 +183,13 @@ void Game::LoadTextures()
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/rustymetal.png").c_str(),
-		0, srvRust.GetAddressOf());
+		FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(),
+		0, srvTilesSpec.GetAddressOf());
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
 	mat1->AddSampler("BasicSampler", samplerState);
 	mat1->AddTextureSRV("SurfaceTexture", srvTiles);
+	mat1->AddTextureSRV("SpecTexture", srvTilesSpec);
 
 	mat1->PrepareMaterial();
 

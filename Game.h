@@ -93,6 +93,6 @@ private:
 	Light pointLight2;
 
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvTiles;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvRust;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvTilesSpec;
 };
 
