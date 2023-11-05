@@ -1,0 +1,1 @@
+I added specular map functionality. I added an srv for the specular map texture and then multiplied the specular value by the value from the texture.
