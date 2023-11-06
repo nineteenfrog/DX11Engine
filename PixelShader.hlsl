@@ -16,6 +16,7 @@ cbuffer ExternalData : register(b0)
 
 Texture2D SurfaceTexture    : register(t0); // "t" registers for textures
 Texture2D SpecTexture       : register(t1); // "t" registers for textures
+Texture2D NormalTexture     : register(t2); // "t" registers for textures
 SamplerState BasicSampler   : register(s0); // "s" registers for samplers
 
 // Struct representing the data we expect to receive from earlier pipeline stages
@@ -34,6 +35,7 @@ struct VertexToPixel
     float2 uv				: TEXCOORD;
     float3 normal			: NORMAL;
     float3 worldPosition	: POSITION;
+    float3 tangent          : TANGENT;
 };
 
 float3 normalizeLightDirection(float3 lightDirection)
@@ -101,8 +103,8 @@ float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor, f
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-    input.normal = normalize(input.normal);
-    
+
+    //BASE COLOR AND LIGHT
     float3 surfaceColor = (SurfaceTexture.Sample(BasicSampler, input.uv).rgb);
     surfaceColor = surfaceColor * ambientColor;
     
@@ -114,5 +116,17 @@ float4 main(VertexToPixel input) : SV_TARGET
     surfaceColor += calculatePointLight(pointLight1, input, surfaceColor, specularMap.r);
     surfaceColor += calculatePointLight(pointLight2, input, surfaceColor, specularMap.r);
 
+    //NORMAL MAPPING
+    input.normal = normalize(input.normal);
+    float3 unpackedNormal = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+    unpackedNormal = normalize(unpackedNormal); // Don’t forget to normalize!
+    
+    float3 N = input.normal; // Must be normalized here or before
+    float3 T = normalize(input.tangent); // Must be normalized here or before
+    T = normalize(T - N * dot(T, N)); // Gram-Schmidt assumes T&N are normalized!
+    float3 B = cross(T, N);
+    float3x3 TBN = float3x3(T, B, N);
+    input.normal = mul(unpackedNormal, TBN); // Note multiplication order!
+    
     return float4(surfaceColor, 1.0f);
 }

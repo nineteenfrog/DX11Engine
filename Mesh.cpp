@@ -26,7 +26,6 @@ Mesh::Mesh(
 	vbd.MiscFlags = 0;
 	vbd.StructureByteStride = 0;
 
-
 	D3D11_SUBRESOURCE_DATA initialVertexData = {};
 	initialVertexData.pSysMem = vertices;
 

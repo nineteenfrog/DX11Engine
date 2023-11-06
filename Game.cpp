@@ -177,19 +177,26 @@ void Game::LoadTextures()
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/brokentiles.png").c_str(),
-		0, srvTiles.GetAddressOf());
+		FixPath(L"../../Assets/Textures/cushion.png").c_str(),
+		0, srvBC.GetAddressOf());
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
 		FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(),
-		0, srvTilesSpec.GetAddressOf());
+		0, srvS.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/flat_normals.png").c_str(),
+		0, srvN.GetAddressOf());
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
 	mat1->AddSampler("BasicSampler", samplerState);
-	mat1->AddTextureSRV("SurfaceTexture", srvTiles);
-	mat1->AddTextureSRV("SpecTexture", srvTilesSpec);
+	mat1->AddTextureSRV("SurfaceTexture", srvBC);
+	mat1->AddTextureSRV("SpecTexture", srvS);
+	mat1->AddTextureSRV("NormalTexture", srvN);
 
 	mat1->PrepareMaterial();
 
