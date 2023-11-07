@@ -58,7 +58,6 @@ float Attenuate(Light light, float3 worldPos)
 float3 calculateDirLight(Light light, VertexToPixel input, float3 baseColor, float specVal)
 {
     float3 lightDir = normalizeLightDirection(light.direction);
-    float3 surfaceColor = colorTint.rgb * baseColor;
     
     float3 V = normalize(input.worldPosition - cameraPos);
     float3 R = reflect(lightDir, input.normal);
@@ -68,16 +67,14 @@ float3 calculateDirLight(Light light, VertexToPixel input, float3 baseColor, flo
     spec *= specVal;
     
     float3 diff = (diffuse(input.normal, lightDir));
-    float3 lightFinal = diff + spec; // Tint specular?
-    lightFinal *= colorTint.rgb * light.color;
+    float3 lightFinal = diff * baseColor + spec; // Tint specular?
     
-    return lightFinal * light.intensity;
+    return lightFinal * light.intensity * light.color;
 }
 
 float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor, float specVal)
 {
     float3 lightDir = normalizeLightDirection(input.worldPosition - light.position);
-    float3 surfaceColor = colorTint.rgb * baseColor;
     
     float3 V = normalize(input.worldPosition - cameraPos);
     float3 R = reflect(lightDir, input.normal);
@@ -87,10 +84,9 @@ float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor, f
     spec *= specVal;
     
     float3 diff = diffuse(input.normal, lightDir);
-    float3 lightFinal = diff + spec; // Tint specular?
-    lightFinal *= surfaceColor * light.color;
+    float3 lightFinal = diff * baseColor + spec; // Tint specular?
     
-    return lightFinal * light.intensity * Attenuate(light, input.worldPosition);
+    return lightFinal * light.intensity * light.color * Attenuate(light, input.worldPosition);
 }
 
 // --------------------------------------------------------
@@ -118,15 +114,16 @@ float4 main(VertexToPixel input) : SV_TARGET
 
     //BASE COLOR AND LIGHT
     float3 surfaceColor = (SurfaceTexture.Sample(BasicSampler, input.uv).rgb);
-    surfaceColor = surfaceColor * ambientColor;
     
+    float3 totalLight = colorTint * ambientColor;
+
     float3 specularMap = (SpecTexture.Sample(BasicSampler, input.uv).rgb);
     
-    surfaceColor += calculateDirLight(directionalLight1, input, surfaceColor, specularMap.r);
-    surfaceColor += calculateDirLight(directionalLight2, input, surfaceColor, specularMap.r);
-    surfaceColor += calculateDirLight(directionalLight3, input, surfaceColor, specularMap.r);
-    surfaceColor += calculatePointLight(pointLight1, input, surfaceColor, specularMap.r);
-    surfaceColor += calculatePointLight(pointLight2, input, surfaceColor, specularMap.r);
-
-    return float4(surfaceColor, 1.0f);
+    totalLight += calculateDirLight(directionalLight1, input, surfaceColor, specularMap.r);
+    totalLight += calculateDirLight(directionalLight2, input, surfaceColor, specularMap.r);
+    totalLight += calculateDirLight(directionalLight3, input, surfaceColor, specularMap.r);
+    totalLight += calculatePointLight(pointLight1, input, surfaceColor, specularMap.r);
+    totalLight += calculatePointLight(pointLight2, input, surfaceColor, specularMap.r);
+    
+    return float4(totalLight, 1.0f);
 }
