@@ -48,6 +48,13 @@ float3 diffuse(float3 normal, float3 dirToLight)
     return saturate(dot(normal, dirToLight));
 }
 
+float Attenuate(Light light, float3 worldPos)
+{
+    float dist = distance(light.position, worldPos);
+    float att = saturate(1.0f - (dist * dist / (light.range * light.range)));
+    return att * att;
+}
+
 float3 calculateDirLight(Light light, VertexToPixel input, float3 baseColor, float specVal)
 {
     float3 lightDir = normalizeLightDirection(light.direction);
@@ -59,19 +66,12 @@ float3 calculateDirLight(Light light, VertexToPixel input, float3 baseColor, flo
 
     float spec = pow(saturate(dot(R, V)), specExponent);
     spec *= specVal;
-        
+    
     float3 diff = (diffuse(input.normal, lightDir));
     float3 lightFinal = diff + spec; // Tint specular?
     lightFinal *= colorTint.rgb * light.color;
     
     return lightFinal * light.intensity;
-}
-
-float Attenuate(Light light, float3 worldPos)
-{
-    float dist = distance(light.position, worldPos);
-    float att = saturate(1.0f - (dist * dist / (light.range * light.range)));
-    return att * att;
 }
 
 float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor, float specVal)
@@ -84,7 +84,8 @@ float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor, f
     float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 
     float spec = pow(saturate(dot(R, V)), specExponent);
-        
+    spec *= specVal;
+    
     float3 diff = diffuse(input.normal, lightDir);
     float3 lightFinal = diff + spec; // Tint specular?
     lightFinal *= surfaceColor * light.color;
@@ -103,6 +104,17 @@ float3 calculatePointLight(Light light, VertexToPixel input, float3 baseColor, f
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
+    //NORMAL MAPPING
+    input.normal = normalize(input.normal);
+    float3 unpackedNormal = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
+    unpackedNormal = normalize(unpackedNormal); // Don’t forget to normalize!
+    
+    float3 N = input.normal; // Must be normalized here or before
+    float3 T = normalize(input.tangent); // Must be normalized here or before
+    T = normalize(T - N * dot(T, N)); // Gram-Schmidt assumes T&N are normalized!
+    float3 B = cross(T, N);
+    float3x3 TBN = float3x3(T, B, N);
+    input.normal = mul(unpackedNormal, TBN); // Note multiplication order!
 
     //BASE COLOR AND LIGHT
     float3 surfaceColor = (SurfaceTexture.Sample(BasicSampler, input.uv).rgb);
@@ -116,17 +128,5 @@ float4 main(VertexToPixel input) : SV_TARGET
     surfaceColor += calculatePointLight(pointLight1, input, surfaceColor, specularMap.r);
     surfaceColor += calculatePointLight(pointLight2, input, surfaceColor, specularMap.r);
 
-    //NORMAL MAPPING
-    input.normal = normalize(input.normal);
-    float3 unpackedNormal = NormalTexture.Sample(BasicSampler, input.uv).rgb * 2 - 1;
-    unpackedNormal = normalize(unpackedNormal); // Don’t forget to normalize!
-    
-    float3 N = input.normal; // Must be normalized here or before
-    float3 T = normalize(input.tangent); // Must be normalized here or before
-    T = normalize(T - N * dot(T, N)); // Gram-Schmidt assumes T&N are normalized!
-    float3 B = cross(T, N);
-    float3x3 TBN = float3x3(T, B, N);
-    input.normal = mul(unpackedNormal, TBN); // Note multiplication order!
-    
     return float4(surfaceColor, 1.0f);
 }

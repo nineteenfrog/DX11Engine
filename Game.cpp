@@ -177,7 +177,7 @@ void Game::LoadTextures()
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/cushion.png").c_str(),
+		FixPath(L"../../Assets/Textures/rock.png").c_str(),
 		0, srvBC.GetAddressOf());
 
 	CreateWICTextureFromFile(
@@ -189,7 +189,7 @@ void Game::LoadTextures()
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/flat_normals.png").c_str(),
+		FixPath(L"../../Assets/Textures/rock_normals.png").c_str(),
 		0, srvN.GetAddressOf());
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
