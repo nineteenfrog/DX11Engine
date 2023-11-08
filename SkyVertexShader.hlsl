@@ -36,11 +36,16 @@ VertexToPixel main(VertexShaderInput input)
 	// Set up output struct
     VertexToPixel output;
 	
+    matrix viewUnchanged = view;
     view._14 = 0;
     view._24 = 0;
     view._34 = 0;
     
+    matrix outputPos = mul(projection, viewUnchanged);
+    output.position = mul(outputPos, float4(input.localPosition, 1.0f));
     
+    output.position.z = output.position.w;
+    output.sampleDir = input.localPosition;
 	
     return output;
 }
