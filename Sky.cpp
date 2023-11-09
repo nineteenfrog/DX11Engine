@@ -20,6 +20,7 @@ Sky::Sky(
 	D3D11_RASTERIZER_DESC rasterizerDesc = {};
 	rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 	rasterizerDesc.CullMode = D3D11_CULL_FRONT;
+	rasterizerDesc.DepthClipEnable = true;
 	device->CreateRasterizerState(&rasterizerDesc, &rasterizerState);
 
 	D3D11_DEPTH_STENCIL_DESC stencilDesc = {};
@@ -48,6 +49,11 @@ void Sky::Draw(std::shared_ptr<Camera> camera)
 	mesh->Draw();
 
 	context->RSSetState(0);
+	context->OMSetDepthStencilState(0, 0);
+}
+
+Sky::Sky()
+{
 }
 
 // --------------------------------------------------------
@@ -136,4 +142,9 @@ Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> Sky::CreateCubemap(
 
 	// Send back the SRV, which is what we need for our shaders
 	return cubeSRV;
+}
+
+void Sky::SetSrv(Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> skySrv)
+{
+	srv = skySrv;
 }

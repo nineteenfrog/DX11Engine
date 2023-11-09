@@ -12,6 +12,9 @@
 #include "Camera.h"
 #include "SimpleShader.h"
 #include "Lights.h"
+#include "Sky.h"
+#include "PathHelpers.h"
+
 
 class Game
 	: public DXCore
@@ -34,6 +37,7 @@ private:
 	void LoadShaders();
 	void CreateGeometry();
 	void LoadTextures();
+	void LoadSky();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -48,6 +52,10 @@ private:
 	std::shared_ptr<SimplePixelShader> pixelShader;
 	std::shared_ptr<SimpleVertexShader> vertexShader;
 	std::shared_ptr<SimplePixelShader> customShader;
+	//Sky shaders
+	std::shared_ptr<SimpleVertexShader> skyVS;
+	std::shared_ptr<SimplePixelShader> skyPS;
+
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 	std::shared_ptr<GameEntity> shapes[5];
 	float translation[5][3] = {
@@ -92,8 +100,14 @@ private:
 	Light pointLight1;
 	Light pointLight2;
 
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvBC;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvS;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvN;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvSky;
+
+	std::shared_ptr<Mesh> skyMesh;
+
+	Sky sky;
 };
 

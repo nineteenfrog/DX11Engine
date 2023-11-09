@@ -1,7 +1,6 @@
 #include "Game.h"
 #include "Vertex.h"
 #include "Input.h"
-#include "PathHelpers.h"
 #include "Material.h"
 #include "WICTextureLoader.h"
 
@@ -76,6 +75,7 @@ void Game::Init()
 	mat2 = std::make_shared<Material>(springGreen, vertexShader, pixelShader, 0.0);
 	mat3 = std::make_shared<Material>(violet, vertexShader, customShader, 0.0);
 	CreateGeometry();
+	LoadSky();
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -133,6 +133,7 @@ void Game::Init()
 		pointLight2.intensity = 0.5f;
 		pointLight2.range = 100.0f;
 	}
+
 }
 
 // --------------------------------------------------------
@@ -159,11 +160,20 @@ void Game::LoadShaders()
 		device,
 		context,
 		FixPath(L"CustomPS.cso").c_str());
+
+	skyVS = std::make_shared<SimpleVertexShader>(
+		device,
+		context,
+		FixPath(L"SkyVertexShader.cso").c_str());
+
+	skyPS = std::make_shared<SimplePixelShader>(
+		device,
+		context,
+		FixPath(L"SkyPixelShader.cso").c_str());
 }
 
 void Game::LoadTextures()
 {
-	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	D3D11_SAMPLER_DESC samplerDescription = {};
 	samplerDescription.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
 	samplerDescription.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
@@ -199,7 +209,27 @@ void Game::LoadTextures()
 	mat1->AddTextureSRV("NormalTexture", srvN);
 
 	mat1->PrepareMaterial();
+	
+}
 
+void Game::LoadSky()
+{
+	sky = Sky(
+		skyMesh,
+		samplerState,
+		device,
+		srvSky,
+		skyVS,
+		skyPS,
+		context);
+
+	sky.SetSrv(sky.CreateCubemap(
+		FixPath(L"../../Assets/Planet/right.png").c_str(),
+		FixPath(L"../../Assets/Planet/left.png").c_str(),
+		FixPath(L"../../Assets/Planet/up.png").c_str(),
+		FixPath(L"../../Assets/Planet/down.png").c_str(),
+		FixPath(L"../../Assets/Planet/front.png").c_str(),
+		FixPath(L"../../Assets/Planet/back.png").c_str()));
 }
 
 // --------------------------------------------------------
@@ -246,6 +276,11 @@ void Game::CreateGeometry()
 			context),
 		mat1);
 	shapes[4]->GetTransform()->MoveAbsolute(7, 0, 0);
+
+	skyMesh = std::make_shared<Mesh>(
+		FixPath(L"../../Assets/Models/cube.obj").c_str(),
+		device,
+		context);
 }
 
 
@@ -438,6 +473,8 @@ void Game::Draw(float deltaTime, float totalTime)
 		shapes[i]->GetMaterial()->GetPixelShader()->SetFloat3("ambientColor", ambientColor);
 		shapes[i]->Draw(context, *camera[activeCamera]);
 	}
+
+	sky.Draw(camera[activeCamera]);
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
