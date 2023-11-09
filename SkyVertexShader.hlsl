@@ -37,9 +37,9 @@ VertexToPixel main(VertexShaderInput input)
     VertexToPixel output;
 	
     matrix viewUnchanged = view;
-    view._14 = 0;
-    view._24 = 0;
-    view._34 = 0;
+    viewUnchanged._14 = 0;
+    viewUnchanged._24 = 0;
+    viewUnchanged._34 = 0;
     
     matrix outputPos = mul(projection, viewUnchanged);
     output.position = mul(outputPos, float4(input.localPosition, 1.0f));

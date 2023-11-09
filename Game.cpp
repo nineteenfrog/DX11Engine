@@ -208,7 +208,6 @@ void Game::LoadTextures()
 	mat1->AddTextureSRV("SpecTexture", srvS);
 	mat1->AddTextureSRV("NormalTexture", srvN);
 
-	mat1->PrepareMaterial();
 	
 }
 
@@ -441,34 +440,36 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//setting Ambien color for material
 	XMFLOAT3 ambientColor = XMFLOAT3(0.0f, 0.1f, 0.2f);
-
-	mat1->GetPixelShader()->SetData(
-		"directionalLight1",
-		&directionalLight1,
-		sizeof(Light));
-
-	mat1->GetPixelShader()->SetData(
-		"directionalLight2",
-		&directionalLight2,
-		sizeof(Light));
-
-	mat1->GetPixelShader()->SetData(
-		"directionalLight3",
-		&directionalLight3,
-		sizeof(Light));
-
-	mat1->GetPixelShader()->SetData(
-		"pointLight1",
-		&pointLight1,
-		sizeof(Light));
-
-	mat1->GetPixelShader()->SetData(
-		"pointLight2",
-		&pointLight2,
-		sizeof(Light));
 	
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
+			
+		shapes[i]->GetMaterial()->PrepareMaterial();
+
+		shapes[i]->GetMaterial()->GetPixelShader()->SetData(
+			"directionalLight1",
+			&directionalLight1,
+			sizeof(Light));
+
+		shapes[i]->GetMaterial()->GetPixelShader()->SetData(
+			"directionalLight2",
+			&directionalLight2,
+			sizeof(Light));
+
+		shapes[i]->GetMaterial()->GetPixelShader()->SetData(
+			"directionalLight3",
+			&directionalLight3,
+			sizeof(Light));
+
+		shapes[i]->GetMaterial()->GetPixelShader()->SetData(
+			"pointLight1",
+			&pointLight1,
+			sizeof(Light));
+
+		shapes[i]->GetMaterial()->GetPixelShader()->SetData(
+			"pointLight2",
+			&pointLight2,
+			sizeof(Light));
 		//set the ambient color
 		shapes[i]->GetMaterial()->GetPixelShader()->SetFloat3("ambientColor", ambientColor);
 		shapes[i]->Draw(context, *camera[activeCamera]);

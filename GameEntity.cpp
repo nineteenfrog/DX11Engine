@@ -39,7 +39,6 @@ void GameEntity::Draw(
 	material->GetVertexShader()->SetShader();
 	material->GetPixelShader()->SetShader();
 
-	mesh->Draw();
 
 	std::shared_ptr<SimpleVertexShader> vs = material->GetVertexShader();
 	vs->SetMatrix4x4("world", transform->GetWorldMatrix());
@@ -55,4 +54,5 @@ void GameEntity::Draw(
 	vs->CopyAllBufferData();
 	ps->CopyAllBufferData();
 
+	mesh->Draw();
 }
