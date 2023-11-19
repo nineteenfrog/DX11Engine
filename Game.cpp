@@ -204,9 +204,9 @@ void Game::LoadTextures()
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
 	mat1->AddSampler("BasicSampler", samplerState);
-	mat1->AddTextureSRV("SurfaceTexture", srvBC);
-	mat1->AddTextureSRV("SpecTexture", srvS);
-	mat1->AddTextureSRV("NormalTexture", srvN);
+	mat1->AddTextureSRV("Albedo", srvBC);
+	mat1->AddTextureSRV("SpecMap", srvS);
+	mat1->AddTextureSRV("NormalMap", srvN);
 
 	
 }
