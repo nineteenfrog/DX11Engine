@@ -187,28 +187,33 @@ void Game::LoadTextures()
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/rock.png").c_str(),
+		FixPath(L"../../Assets/Textures/PBR/bronze_albedo.png").c_str(),
 		0, srvBC.GetAddressOf());
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/brokentiles_specular.png").c_str(),
-		0, srvS.GetAddressOf());
+		FixPath(L"../../Assets/Textures/PBR/bronze_normals.png").c_str(),
+		0, srvN.GetAddressOf());
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
-		FixPath(L"../../Assets/Textures/rock_normals.png").c_str(),
-		0, srvN.GetAddressOf());
+		FixPath(L"../../Assets/Textures/PBR/bronze_roughness.png").c_str(),
+		0, srvR.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/bronze_metal.png").c_str(),
+		0, srvM.GetAddressOf());
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
 	mat1->AddSampler("BasicSampler", samplerState);
 	mat1->AddTextureSRV("Albedo", srvBC);
-	mat1->AddTextureSRV("SpecMap", srvS);
 	mat1->AddTextureSRV("NormalMap", srvN);
-
-	
+	mat1->AddTextureSRV("RoughnessMap", srvR);
+	mat1->AddTextureSRV("MetalnessMap", srvM);	
 }
 
 void Game::LoadSky()

@@ -102,8 +102,9 @@ private:
 
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvBC;
-	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvS;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvN;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvR;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvM;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvSky;
 
 	std::shared_ptr<Mesh> skyMesh;
