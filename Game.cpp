@@ -213,7 +213,7 @@ void Game::LoadTextures()
 	mat1->AddTextureSRV("Albedo", srvBC);
 	mat1->AddTextureSRV("NormalMap", srvN);
 	mat1->AddTextureSRV("RoughnessMap", srvR);
-	mat1->AddTextureSRV("MetalnessMap", srvM);	
+	mat1->AddTextureSRV("MetalnessMap", srvM);
 }
 
 void Game::LoadSky()
@@ -245,7 +245,7 @@ void Game::CreateGeometry()
 		std::make_shared<Mesh>(
 			FixPath(L"../../Assets/Models/cube.obj").c_str(),
 			device,
-			context), 
+			context),
 		mat1);
 	shapes[0]->GetTransform()->MoveAbsolute(-5, 0, 0);
 
@@ -410,13 +410,13 @@ void Game::Update(float deltaTime, float totalTime)
 			}
 			ImGui::PopID();
 		}
-		
+
 		ImGui::End();
 		if (input.KeyPress('C')) {
 			activeCamera = (activeCamera + 1) % 3;
 		}
 	}
-	
+
 	camera[activeCamera]->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
@@ -445,10 +445,10 @@ void Game::Draw(float deltaTime, float totalTime)
 
 	//setting Ambien color for material
 	XMFLOAT3 ambientColor = XMFLOAT3(0.0f, 0.1f, 0.2f);
-	
+
 	//Drawing shapes -A
 	for (int i = 0; i < 5; i++) {
-			
+
 		shapes[i]->GetMaterial()->PrepareMaterial();
 
 		shapes[i]->GetMaterial()->GetPixelShader()->SetData(

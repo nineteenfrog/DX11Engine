@@ -14,11 +14,11 @@ cbuffer ExternalData : register(b0)
     Light pointLight2;
 }
 
-Texture2D Albedo            : register(t0); // "t" registers for textures
-Texture2D NormalMap         : register(t1);
-Texture2D RoughnessMap      : register(t2);
-Texture2D MetalnessMap      : register(t3);
-SamplerState BasicSampler   : register(s0); // "s" registers for samplers
+Texture2D Albedo : register(t0); // "t" registers for textures
+Texture2D NormalMap : register(t1);
+Texture2D RoughnessMap : register(t2);
+Texture2D MetalnessMap : register(t3);
+SamplerState BasicSampler : register(s0); // "s" registers for samplers
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -32,11 +32,11 @@ struct VertexToPixel
 	//  |   Name          Semantic
 	//  |    |                |
 	//  v    v                v
-	float4 screenPosition	: SV_POSITION;
-    float2 uv				: TEXCOORD;
-    float3 normal			: NORMAL;
-    float3 worldPosition	: POSITION;
-    float3 tangent          : TANGENT;
+    float4 screenPosition : SV_POSITION;
+    float2 uv : TEXCOORD;
+    float3 normal : NORMAL;
+    float3 worldPosition : POSITION;
+    float3 tangent : TANGENT;
 };
 
 float3 normalizeLightDirection(float3 lightDirection)
@@ -57,9 +57,9 @@ float Attenuate(Light light, float3 worldPos)
 }
 
 float3 calculateDirLight(
-    Light light, 
-    VertexToPixel input, 
-    float3 baseColor, 
+    Light light,
+    VertexToPixel input,
+    float3 baseColor,
     float3 specularColor,
     float metalness)
 {
@@ -69,21 +69,21 @@ float3 calculateDirLight(
     float3 R = reflect(lightDir, input.normal);
     float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 
-    float3 diff = (diffuse(input.normal, lightDir));
+    float3 diff = DiffusePBR(input.normal, lightDir);
     float3 F;
     float3 spec = MicrofacetBRDF(input.normal, lightDir, V, roughness, specularColor, F);
 
     float3 balancedDiff = DiffuseEnergyConserve(diff, F, metalness);
-
+    
     float3 lightFinal = balancedDiff * baseColor + spec;
     
     return lightFinal * light.intensity * light.color;
 }
 
 float3 calculatePointLight(
-    Light light, 
-    VertexToPixel input, 
-    float3 baseColor, 
+    Light light,
+    VertexToPixel input,
+    float3 baseColor,
     float3 specularColor,
     float metalness)
 {
@@ -93,12 +93,12 @@ float3 calculatePointLight(
     float3 R = reflect(lightDir, input.normal);
     float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
 
-    float3 diff = diffuse(input.normal, lightDir);
+    float3 diff = DiffusePBR(input.normal, lightDir);
     float3 F;
     float3 spec = MicrofacetBRDF(input.normal, lightDir, V, roughness, specularColor, F);
     
     float3 balancedDiff = DiffuseEnergyConserve(diff, F, metalness);
-
+    
     float3 lightFinal = balancedDiff * baseColor + spec; // Tint specular?
     
     return lightFinal * light.intensity * light.color * Attenuate(light, input.worldPosition);
@@ -135,7 +135,7 @@ float4 main(VertexToPixel input) : SV_TARGET
     float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
     
     float metalness = MetalnessMap.Sample(BasicSampler, input.uv).r;
-    
+    return metalness;
     // Specular color determination -----------------
     // Assume albedo texture is actually holding specular color where metalness == 1
     // Note the use of lerp here - metal is generally 0 or 1, but might be in between
@@ -148,5 +148,5 @@ float4 main(VertexToPixel input) : SV_TARGET
     totalLight += calculatePointLight(pointLight1, input, surfaceColor, specularColor, metalness);
     totalLight += calculatePointLight(pointLight2, input, surfaceColor, specularColor, metalness);
     
-    return float4(pow(totalLight, 1.0f / 2.2f), 1.0f);
+    return float4(pow(totalLight, 1.0f / 2.2f), 1);
 }
