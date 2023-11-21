@@ -5,7 +5,6 @@ cbuffer ExternalData : register(b0)
 {
     float4 colorTint;
     float3 cameraPos;
-    float roughness;
     float3 ambientColor;
     Light directionalLight1;
     Light directionalLight2;
@@ -39,11 +38,6 @@ struct VertexToPixel
     float3 tangent : TANGENT;
 };
 
-float3 normalizeLightDirection(float3 lightDirection)
-{
-    return normalize(-lightDirection);
-}
-
 float3 diffuse(float3 normal, float3 dirToLight)
 {
     return saturate(dot(normal, dirToLight));
@@ -61,13 +55,11 @@ float3 calculateDirLight(
     VertexToPixel input,
     float3 baseColor,
     float3 specularColor,
+    float roughness,
     float metalness)
 {
-    float3 lightDir = normalizeLightDirection(light.direction);
-    
-    float3 V = normalize(input.worldPosition - cameraPos);
-    float3 R = reflect(lightDir, input.normal);
-    float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
+    float3 lightDir = normalize(-light.direction);
+    float3 V = normalize(cameraPos - input.worldPosition);
 
     float3 diff = DiffusePBR(input.normal, lightDir);
     float3 F;
@@ -85,13 +77,11 @@ float3 calculatePointLight(
     VertexToPixel input,
     float3 baseColor,
     float3 specularColor,
+    float roughness,
     float metalness)
 {
-    float3 lightDir = normalizeLightDirection(input.worldPosition - light.position);
-    
-    float3 V = normalize(input.worldPosition - cameraPos);
-    float3 R = reflect(lightDir, input.normal);
-    float specExponent = (1.0f - roughness) * MAX_SPECULAR_EXPONENT;
+    float3 lightDir = normalize(-light.direction);
+    float3 V = normalize(cameraPos - input.worldPosition);
 
     float3 diff = DiffusePBR(input.normal, lightDir);
     float3 F;
@@ -115,7 +105,6 @@ float3 calculatePointLight(
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
-    
     //NORMAL MAPPING
     input.normal = normalize(input.normal);
     float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv).rgb * 2 - 1;
@@ -130,23 +119,24 @@ float4 main(VertexToPixel input) : SV_TARGET
 
     //BASE COLOR AND LIGHT
     float3 surfaceColor = pow(Albedo.Sample(BasicSampler, input.uv).rgb, 2.2f);
-    float3 totalLight = colorTint.rgb * (0, 0, 0);
+    float3 totalLight = (0, 0, 0);
     
     float roughness = RoughnessMap.Sample(BasicSampler, input.uv).r;
     
     float metalness = MetalnessMap.Sample(BasicSampler, input.uv).r;
-    return metalness;
+    
     // Specular color determination -----------------
     // Assume albedo texture is actually holding specular color where metalness == 1
     // Note the use of lerp here - metal is generally 0 or 1, but might be in between
     // because of linear texture sampling, so we lerp the specular color to match
     float3 specularColor = lerp(F0_NON_METAL, surfaceColor.rgb, metalness);
 
-    totalLight += calculateDirLight(directionalLight1, input, surfaceColor, specularColor, metalness);
-    totalLight += calculateDirLight(directionalLight2, input, surfaceColor, specularColor, metalness);
-    totalLight += calculateDirLight(directionalLight3, input, surfaceColor, specularColor, metalness);
-    totalLight += calculatePointLight(pointLight1, input, surfaceColor, specularColor, metalness);
-    totalLight += calculatePointLight(pointLight2, input, surfaceColor, specularColor, metalness);
-    
-    return float4(pow(totalLight, 1.0f / 2.2f), 1);
+    totalLight += calculateDirLight(directionalLight1, input, surfaceColor, specularColor, roughness, metalness);
+    totalLight += calculateDirLight(directionalLight2, input, surfaceColor, specularColor, roughness, metalness);
+    totalLight += calculateDirLight(directionalLight3, input, surfaceColor, specularColor, roughness, metalness);
+    totalLight += calculatePointLight(pointLight1, input, surfaceColor, specularColor, roughness, metalness);
+    totalLight += calculatePointLight(pointLight2, input, surfaceColor, specularColor, roughness, metalness);
+
+    totalLight = pow(totalLight, 1.0f / 2.2f);
+    return float4(totalLight, 1);
 }

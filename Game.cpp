@@ -67,13 +67,8 @@ void Game::Init()
 	// Helper methods for loading shaders, creating some basic
 	// geometry to draw and some simple camera matrices.
 	//  - You'll be expanding and/or replacing these later
-	XMFLOAT4 rose = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-	XMFLOAT4 springGreen = XMFLOAT4(0.0f, 1.0f, 0.5f, 1.0f);
-	XMFLOAT4 violet = XMFLOAT4(0.5f, 0.0f, 1.0f, 1.0f);
 	LoadShaders();
 	LoadTextures();
-	mat2 = std::make_shared<Material>(springGreen, vertexShader, pixelShader, 0.0);
-	mat3 = std::make_shared<Material>(violet, vertexShader, customShader, 0.0);
 	CreateGeometry();
 	LoadSky();
 
@@ -184,36 +179,171 @@ void Game::LoadTextures()
 
 	device->CreateSamplerState(&samplerDescription, samplerState.GetAddressOf());
 
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> bronzeSRVA, bronzeSRVN, bronzeSRVR, bronzeSRVM;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> cobblestoneSRVA, cobblestoneSRVN, cobblestoneSRVR, cobblestoneSRVM;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorSRVA, floorSRVN, floorSRVR, floorSRVM;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> paintSRVA, paintSRVN, paintSRVR, paintSRVM;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchSRVA, scratchSRVN, scratchSRVR, scratchSRVM;
+
+	//Bronze Textures 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
 		FixPath(L"../../Assets/Textures/PBR/bronze_albedo.png").c_str(),
-		0, srvBC.GetAddressOf());
+		0, bronzeSRVA.GetAddressOf());
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
 		FixPath(L"../../Assets/Textures/PBR/bronze_normals.png").c_str(),
-		0, srvN.GetAddressOf());
+		0, bronzeSRVN.GetAddressOf());
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
 		FixPath(L"../../Assets/Textures/PBR/bronze_roughness.png").c_str(),
-		0, srvR.GetAddressOf());
+		0, bronzeSRVR.GetAddressOf());
 
 	CreateWICTextureFromFile(
 		device.Get(),
 		context.Get(),
 		FixPath(L"../../Assets/Textures/PBR/bronze_metal.png").c_str(),
-		0, srvM.GetAddressOf());
+		0, bronzeSRVM.GetAddressOf());
 
 	mat1 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
 	mat1->AddSampler("BasicSampler", samplerState);
-	mat1->AddTextureSRV("Albedo", srvBC);
-	mat1->AddTextureSRV("NormalMap", srvN);
-	mat1->AddTextureSRV("RoughnessMap", srvR);
-	mat1->AddTextureSRV("MetalnessMap", srvM);
+	mat1->AddTextureSRV("Albedo", bronzeSRVA);
+	mat1->AddTextureSRV("NormalMap", bronzeSRVN);
+	mat1->AddTextureSRV("RoughnessMap", bronzeSRVR);
+	mat1->AddTextureSRV("MetalnessMap", bronzeSRVM);
+
+	//Cobblestone Textures 
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/cobblestone_albedo.png").c_str(),
+		0, cobblestoneSRVA.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/cobblestone_normals.png").c_str(),
+		0, cobblestoneSRVN.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/cobblestone_roughness.png").c_str(),
+		0, cobblestoneSRVR.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/cobblestone_metal.png").c_str(),
+		0, cobblestoneSRVM.GetAddressOf());
+
+	mat2 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
+	mat2->AddSampler("BasicSampler", samplerState);
+	mat2->AddTextureSRV("Albedo", cobblestoneSRVA);
+	mat2->AddTextureSRV("NormalMap", cobblestoneSRVN);
+	mat2->AddTextureSRV("RoughnessMap", cobblestoneSRVR);
+	mat2->AddTextureSRV("MetalnessMap", cobblestoneSRVM);
+
+	//Floor Textures 
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/floor_albedo.png").c_str(),
+		0, floorSRVA.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/floor_normals.png").c_str(),
+		0, floorSRVN.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/floor_roughness.png").c_str(),
+		0, floorSRVR.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/floor_metal.png").c_str(),
+		0, floorSRVM.GetAddressOf());
+
+	mat3 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
+	mat3->AddSampler("BasicSampler", samplerState);
+	mat3->AddTextureSRV("Albedo", floorSRVA);
+	mat3->AddTextureSRV("NormalMap", floorSRVN);
+	mat3->AddTextureSRV("RoughnessMap", floorSRVR);
+	mat3->AddTextureSRV("MetalnessMap", floorSRVM);
+
+	//Paint Textures 
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/paint_albedo.png").c_str(),
+		0, paintSRVA.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/paint_normals.png").c_str(),
+		0, paintSRVN.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/paint_roughness.png").c_str(),
+		0, paintSRVR.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/paint_metal.png").c_str(),
+		0, paintSRVM.GetAddressOf());
+
+	mat4 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
+	mat4->AddSampler("BasicSampler", samplerState);
+	mat4->AddTextureSRV("Albedo", paintSRVA);
+	mat4->AddTextureSRV("NormalMap", paintSRVN);
+	mat4->AddTextureSRV("RoughnessMap", paintSRVR);
+	mat4->AddTextureSRV("MetalnessMap", paintSRVM);
+
+	//Rough Textures 
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/scratched_albedo.png").c_str(),
+		0, scratchSRVA.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/scratched_normals.png").c_str(),
+		0, scratchSRVN.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/scratched_roughness.png").c_str(),
+		0, scratchSRVR.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/scratched_metal.png").c_str(),
+		0, scratchSRVM.GetAddressOf());
+
+	mat5 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
+	mat5->AddSampler("BasicSampler", samplerState);
+	mat5->AddTextureSRV("Albedo", scratchSRVA);
+	mat5->AddTextureSRV("NormalMap", scratchSRVN);
+	mat5->AddTextureSRV("RoughnessMap", scratchSRVR);
+	mat5->AddTextureSRV("MetalnessMap", scratchSRVM);
 }
 
 void Game::LoadSky()
@@ -254,7 +384,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/cylinder.obj").c_str(),
 			device,
 			context),
-		mat1);
+		mat2);
 	shapes[1]->GetTransform()->MoveAbsolute(-2, 0, 0);
 
 	shapes[2] = std::make_shared<GameEntity>(
@@ -262,7 +392,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/helix.obj").c_str(),
 			device,
 			context),
-		mat1);
+		mat3);
 	shapes[2]->GetTransform()->MoveAbsolute(1, 0, 0);
 
 	shapes[3] = std::make_shared<GameEntity>(
@@ -270,7 +400,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/sphere.obj").c_str(),
 			device,
 			context),
-		mat1);
+		mat4);
 	shapes[3]->GetTransform()->MoveAbsolute(4, 0, 0);
 
 	shapes[4] = std::make_shared<GameEntity>(
@@ -278,7 +408,7 @@ void Game::CreateGeometry()
 			FixPath(L"../../Assets/Models/torus.obj").c_str(),
 			device,
 			context),
-		mat1);
+		mat5);
 	shapes[4]->GetTransform()->MoveAbsolute(7, 0, 0);
 
 	skyMesh = std::make_shared<Mesh>(
