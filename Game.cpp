@@ -105,7 +105,7 @@ void Game::Init()
 		directionalLight1.intensity = 0.5f;
 
 		directionalLight2.type = LIGHT_TYPE_DIRECTIONAL;
-		directionalLight2.direction = XMFLOAT3(0.0f, 1.0f, 0.0f);
+		directionalLight2.direction = XMFLOAT3(0.0f, -1.0f, 0.0f);
 		directionalLight2.color = XMFLOAT3(1.0f, 1.0f, 1.0f);
 		directionalLight2.intensity = 0.5f;
 
@@ -128,6 +128,7 @@ void Game::Init()
 		pointLight2.intensity = 0.5f;
 		pointLight2.range = 100.0f;
 	}
+	CreateShadows();
 
 }
 
@@ -184,6 +185,7 @@ void Game::LoadTextures()
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> floorSRVA, floorSRVN, floorSRVR, floorSRVM;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> paintSRVA, paintSRVN, paintSRVR, paintSRVM;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> scratchSRVA, scratchSRVN, scratchSRVR, scratchSRVM;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> woodSRVA, woodSRVN, woodSRVR, woodSRVM;
 
 	//Bronze Textures 
 	CreateWICTextureFromFile(
@@ -344,6 +346,38 @@ void Game::LoadTextures()
 	mat5->AddTextureSRV("NormalMap", scratchSRVN);
 	mat5->AddTextureSRV("RoughnessMap", scratchSRVR);
 	mat5->AddTextureSRV("MetalnessMap", scratchSRVM);
+
+	//Wood Textures 
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/wood_albedo.png").c_str(),
+		0, woodSRVA.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/wood_normals.png").c_str(),
+		0, woodSRVN.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/wood_roughness.png").c_str(),
+		0, woodSRVR.GetAddressOf());
+
+	CreateWICTextureFromFile(
+		device.Get(),
+		context.Get(),
+		FixPath(L"../../Assets/Textures/PBR/wood_metal.png").c_str(),
+		0, woodSRVM.GetAddressOf());
+
+	mat6 = std::make_shared<Material>(XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), vertexShader, pixelShader, 0.0);
+	mat6->AddSampler("BasicSampler", samplerState);
+	mat6->AddTextureSRV("Albedo", woodSRVA);
+	mat6->AddTextureSRV("NormalMap", woodSRVN);
+	mat6->AddTextureSRV("RoughnessMap", woodSRVR);
+	mat6->AddTextureSRV("MetalnessMap", woodSRVM);
 }
 
 void Game::LoadSky()
@@ -366,6 +400,63 @@ void Game::LoadSky()
 		FixPath(L"../../Assets/Planet/back.png").c_str()));
 }
 
+void Game::CreateShadows()
+{
+	int shadowMapResolution = 1024;
+	// Create the actual texture that will be the shadow map
+	D3D11_TEXTURE2D_DESC shadowDesc = {};
+	shadowDesc.Width = shadowMapResolution; // Ideally a power of 2 (like 1024)
+	shadowDesc.Height = shadowMapResolution; // Ideally a power of 2 (like 1024)
+	shadowDesc.ArraySize = 1;
+	shadowDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL | D3D11_BIND_SHADER_RESOURCE;
+	shadowDesc.CPUAccessFlags = 0;
+	shadowDesc.Format = DXGI_FORMAT_R32_TYPELESS;
+	shadowDesc.MipLevels = 1;
+	shadowDesc.MiscFlags = 0;
+	shadowDesc.SampleDesc.Count = 1;
+	shadowDesc.SampleDesc.Quality = 0;
+	shadowDesc.Usage = D3D11_USAGE_DEFAULT;
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> shadowTexture;
+	device->CreateTexture2D(&shadowDesc, 0, shadowTexture.GetAddressOf());
+
+	// Create the depth/stencil view
+	D3D11_DEPTH_STENCIL_VIEW_DESC shadowDSDesc = {};
+	shadowDSDesc.Format = DXGI_FORMAT_D32_FLOAT;
+	shadowDSDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+	shadowDSDesc.Texture2D.MipSlice = 0;
+	device->CreateDepthStencilView(
+		shadowTexture.Get(),
+		&shadowDSDesc,
+		shadowDSV.GetAddressOf());
+	// Create the SRV for the shadow map
+	D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+	srvDesc.Format = DXGI_FORMAT_R32_FLOAT;
+	srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+	srvDesc.Texture2D.MipLevels = 1;
+	srvDesc.Texture2D.MostDetailedMip = 0;
+	device->CreateShaderResourceView(
+		shadowTexture.Get(),
+		&srvDesc,
+		shadowSRV.GetAddressOf());
+
+	XMVECTOR lightDirection;
+	XMVectorSet(directionalLight2.direction.x,
+		directionalLight2.direction.y,
+		directionalLight2.direction.z, 1.0f);
+
+	XMMATRIX lightView = XMMatrixLookToLH(
+		-lightDirection * 20, // Position: "Backing up" 20 units from origin
+		lightDirection, // Direction: light's direction
+		XMVectorSet(0, 1, 0, 0)); // Up: World up vector (Y axis)
+
+	float lightProjectionSize = 15.0f; // Tweak for your scene!
+	XMMATRIX lightProjection = XMMatrixOrthographicLH(
+		lightProjectionSize,
+		lightProjectionSize,
+		1.0f,
+		100.0f);
+}
+
 // --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now
 // --------------------------------------------------------
@@ -377,7 +468,7 @@ void Game::CreateGeometry()
 			device,
 			context),
 		mat1);
-	shapes[0]->GetTransform()->MoveAbsolute(-5, 0, 0);
+	shapes[0]->GetTransform()->MoveAbsolute(-12, 0, 0);
 
 	shapes[1] = std::make_shared<GameEntity>(
 		std::make_shared<Mesh>(
@@ -385,7 +476,7 @@ void Game::CreateGeometry()
 			device,
 			context),
 		mat2);
-	shapes[1]->GetTransform()->MoveAbsolute(-2, 0, 0);
+	shapes[1]->GetTransform()->MoveAbsolute(-5, 0, 0);
 
 	shapes[2] = std::make_shared<GameEntity>(
 		std::make_shared<Mesh>(
@@ -393,7 +484,7 @@ void Game::CreateGeometry()
 			device,
 			context),
 		mat3);
-	shapes[2]->GetTransform()->MoveAbsolute(1, 0, 0);
+	shapes[2]->GetTransform()->MoveAbsolute(0, 0, 0);
 
 	shapes[3] = std::make_shared<GameEntity>(
 		std::make_shared<Mesh>(
@@ -401,7 +492,7 @@ void Game::CreateGeometry()
 			device,
 			context),
 		mat4);
-	shapes[3]->GetTransform()->MoveAbsolute(4, 0, 0);
+	shapes[3]->GetTransform()->MoveAbsolute(5, 0, 0);
 
 	shapes[4] = std::make_shared<GameEntity>(
 		std::make_shared<Mesh>(
@@ -409,7 +500,15 @@ void Game::CreateGeometry()
 			device,
 			context),
 		mat5);
-	shapes[4]->GetTransform()->MoveAbsolute(7, 0, 0);
+	shapes[4]->GetTransform()->MoveAbsolute(10, 0, 0);
+
+	shapes[5] = std::make_shared<GameEntity>(std::make_shared<Mesh>(
+		FixPath(L"../../Assets/Models/cube.obj").c_str(),
+		device,
+		context),
+		mat6);
+	shapes[5]->GetTransform()->Scale(15.0f, 1.0f, 10.0f);
+	shapes[5]->GetTransform()->MoveAbsolute(0, -2.5f, 0);
 
 	skyMesh = std::make_shared<Mesh>(
 		FixPath(L"../../Assets/Models/cube.obj").c_str(),
@@ -462,19 +561,19 @@ void Game::Update(float deltaTime, float totalTime)
 		ImGui::Begin("Window");
 		ImGui::Text("FPS: %f", io.Framerate);
 		ImGui::Text("Window dimensions: %i x %i", windowWidth, windowHeight);
-		for (int i = 0; i < 5; i++) {
+		for (int i = 0; i < 6; i++) {
 			ImGui::PushID(i);
 			if (ImGui::CollapsingHeader("Shape"))
 			{
 
 				if (ImGui::DragFloat3("Translation", translation[i])) {
-					shapes[i]->GetTransform()->MoveAbsolute(XMFLOAT3(translation[i]));
+					shapes[i]->GetTransform()->SetPosition(XMFLOAT3(translation[i]));
 				}
 				if (ImGui::DragFloat3("Rotation", rotation[i])) {
-					shapes[i]->GetTransform()->Rotate(XMFLOAT3(rotation[i]));
+					shapes[i]->GetTransform()->SetRotation(XMFLOAT3(rotation[i]));
 				}
 				if (ImGui::DragFloat3("Scale", scale[i])) {
-					shapes[i]->GetTransform()->Scale(XMFLOAT3(scale[i]));
+					shapes[i]->GetTransform()->SetScale(XMFLOAT3(scale[i]));
 				}
 				if (ImGui::ColorEdit3("Color", colorOffset[i])) {
 					shapes[i]->GetMesh()->SetTint(colorOffset[i][0], colorOffset[i][1], colorOffset[i][2], colorOffset[i][3]);
@@ -547,6 +646,30 @@ void Game::Update(float deltaTime, float totalTime)
 		}
 	}
 
+	//Shape movement
+	if (counter < 200 && going) {
+		shapes[0]->GetTransform()->MoveAbsolute(0.02f, 0, 0);
+		shapes[1]->GetTransform()->Scale(0.999f, 0.999f, 0.999f);
+		shapes[2]->GetTransform()->MoveAbsolute(0, 0.02f, 0);
+		shapes[3]->GetTransform()->Scale(1.001f, 1.001f, 1.001f);
+		shapes[4]->GetTransform()->MoveAbsolute(0, 0, 0.02f);
+		counter++;
+	}
+	else {
+		if (counter <= 0) {
+			going = true;
+		}
+		else {
+			going = false;
+		}
+		shapes[0]->GetTransform()->MoveAbsolute(-0.02f, 0, 0);
+		shapes[1]->GetTransform()->Scale(1.001f, 1.001f, 1.001f);
+		shapes[2]->GetTransform()->MoveAbsolute(0, -0.02f, 0);
+		shapes[3]->GetTransform()->Scale(0.999f, 0.999f, 0.999f);
+		shapes[4]->GetTransform()->MoveAbsolute(0, 0, -0.02f);
+		counter--;
+	}
+
 	camera[activeCamera]->Update(deltaTime);
 
 	// Example input checking: Quit if the escape key is pressed
@@ -560,6 +683,38 @@ void Game::Update(float deltaTime, float totalTime)
 // --------------------------------------------------------
 void Game::Draw(float deltaTime, float totalTime)
 {
+	//Shadow map render
+	context->ClearDepthStencilView(shadowDSV.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+	ID3D11RenderTargetView* nullRTV{};
+	context->OMSetRenderTargets(1, &nullRTV, shadowDSV.Get());
+	context->PSSetShader(0, 0, 0);
+	D3D11_VIEWPORT viewport = {};
+	viewport.Width = (float)shadowMapResolution;
+	viewport.Height = (float)shadowMapResolution;
+	viewport.MaxDepth = 1.0f;
+	context->RSSetViewports(1, &viewport);
+	shadowVS->SetShader();
+	shadowVS->SetMatrix4x4("view", shadowViewMatrix);
+	shadowVS->SetMatrix4x4("projection", shadowProjectionMatrix);
+	// Loop and draw all entities
+	for (auto& e : entities)
+	{
+		shadowVS->SetMatrix4x4("world", e->GetTransform()->GetWorldMatrix());
+		shadowVS->CopyAllBufferData();
+		// Draw the mesh directly to avoid the entity's material
+		// Note: Your code may differ significantly here!
+		e->GetMesh()->SetBuffersAndDraw(context);
+	}
+	viewport.Width = (float)this->windowWidth;
+	viewport.Height = (float)this->windowHeight;
+	context->RSSetViewports(1, &viewport);
+	context->OMSetRenderTargets(
+		1,
+		backBufferRTV.GetAddressOf(),
+		depthBufferDSV.Get());
+	//FIX ABOVE =================================================
+
+
 
 	// Frame START
 	// - These things should happen ONCE PER FRAME
@@ -577,7 +732,7 @@ void Game::Draw(float deltaTime, float totalTime)
 	XMFLOAT3 ambientColor = XMFLOAT3(0.0f, 0.1f, 0.2f);
 
 	//Drawing shapes -A
-	for (int i = 0; i < 5; i++) {
+	for (int i = 0; i < 6; i++) {
 
 		shapes[i]->GetMaterial()->PrepareMaterial();
 

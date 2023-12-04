@@ -38,6 +38,7 @@ private:
 	void CreateGeometry();
 	void LoadTextures();
 	void LoadSky();
+	void CreateShadows();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -57,7 +58,7 @@ private:
 	std::shared_ptr<SimplePixelShader> skyPS;
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
-	std::shared_ptr<GameEntity> shapes[5];
+	std::shared_ptr<GameEntity> shapes[6];
 	float translation[5][3] = {
 		{ 0.0f,0.0f ,0.0f },
 		{ 0.0f,0.0f ,0.0f } ,
@@ -88,6 +89,7 @@ private:
 	std::shared_ptr<Material> mat3;
 	std::shared_ptr<Material> mat4;
 	std::shared_ptr<Material> mat5;
+	std::shared_ptr<Material> mat6;
 
 	//Variables for shape movement
 	bool going = true;
@@ -102,11 +104,17 @@ private:
 	Light pointLight1;
 	Light pointLight2;
 
+	//Skybox Variables
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> samplerState;
 	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> srvSky;
-
 	std::shared_ptr<Mesh> skyMesh;
-
 	Sky sky;
-};
 
+	//Shadow variables
+	Microsoft::WRL::ComPtr<ID3D11DepthStencilView> shadowDSV;
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> shadowSRV;
+	Microsoft::WRL::ComPtr<ID3D11RasterizerState> shadowRasterizer;
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
+	DirectX::XMFLOAT4X4 lightViewMatrix;
+	DirectX::XMFLOAT4X4 lightProjectionMatrix;
+};
