@@ -82,7 +82,6 @@ Mesh::Mesh(
 	int indexCounter = 0;			// Count of indices
 	char chars[100];			// String for line reading
 
-	int counter;
 	// Still have data left?
 	while (obj.good())
 	{
@@ -386,10 +385,12 @@ void Mesh::CalculateTangents(Vertex* verts, int numVerts, unsigned int* indices,
 Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetVertexBuffer() {
 	if (vertexBuffer)
 		return this->vertexBuffer;
+	return NULL;
 }
 Microsoft::WRL::ComPtr<ID3D11Buffer> Mesh::GetIndexBuffed() {
 	if (indexBuffer)
 		return this->indexBuffer;
+	return NULL;
 }
 int Mesh::GetIndexCount() {
 	return indexCount;
