@@ -38,6 +38,8 @@ Game::Game(HINSTANCE hInstance)
 	directionalLight3 = {};
 	pointLight1 = {};
 	pointLight2 = {};
+	XMStoreFloat4x4(&lightViewMatrix, XMMatrixIdentity());
+	XMStoreFloat4x4(&lightProjectionMatrix, XMMatrixIdentity());
 }
 
 // --------------------------------------------------------
@@ -166,6 +168,11 @@ void Game::LoadShaders()
 		device,
 		context,
 		FixPath(L"SkyPixelShader.cso").c_str());
+	
+	shadowVS = std::make_shared<SimpleVertexShader>(
+		device,
+		context,
+		FixPath(L"ShadowVS.cso").c_str());
 }
 
 void Game::LoadTextures()
@@ -402,7 +409,6 @@ void Game::LoadSky()
 
 void Game::CreateShadows()
 {
-	int shadowMapResolution = 1024;
 	// Create the actual texture that will be the shadow map
 	D3D11_TEXTURE2D_DESC shadowDesc = {};
 	shadowDesc.Width = shadowMapResolution; // Ideally a power of 2 (like 1024)
@@ -439,10 +445,10 @@ void Game::CreateShadows()
 		&srvDesc,
 		shadowSRV.GetAddressOf());
 
-	XMVECTOR lightDirection;
-	XMVectorSet(directionalLight2.direction.x,
+	XMVECTOR lightDirection = XMVectorSet(
+		directionalLight2.direction.x,
 		directionalLight2.direction.y,
-		directionalLight2.direction.z, 1.0f);
+		directionalLight2.direction.z, 0.0f);
 
 	XMMATRIX lightView = XMMatrixLookToLH(
 		-lightDirection * 20, // Position: "Backing up" 20 units from origin
@@ -455,6 +461,9 @@ void Game::CreateShadows()
 		lightProjectionSize,
 		1.0f,
 		100.0f);
+
+	XMStoreFloat4x4(&lightViewMatrix, lightView);
+	XMStoreFloat4x4(&lightProjectionMatrix, lightProjection);
 }
 
 // --------------------------------------------------------
@@ -639,6 +648,7 @@ void Game::Update(float deltaTime, float totalTime)
 			}
 			ImGui::PopID();
 		}
+		ImGui::Image(shadowSRV.Get(), ImVec2(1024, 1024));
 
 		ImGui::End();
 		if (input.KeyPress('C')) {
@@ -694,16 +704,15 @@ void Game::Draw(float deltaTime, float totalTime)
 	viewport.MaxDepth = 1.0f;
 	context->RSSetViewports(1, &viewport);
 	shadowVS->SetShader();
-	shadowVS->SetMatrix4x4("view", shadowViewMatrix);
-	shadowVS->SetMatrix4x4("projection", shadowProjectionMatrix);
+	shadowVS->SetMatrix4x4("view", lightViewMatrix);
+	shadowVS->SetMatrix4x4("projection", lightProjectionMatrix);
 	// Loop and draw all entities
-	for (auto& e : entities)
-	{
-		shadowVS->SetMatrix4x4("world", e->GetTransform()->GetWorldMatrix());
+	for (int i = 0; i < 6; i++) {
+		shadowVS->SetMatrix4x4("world", shapes[i]->GetTransform()->GetWorldMatrix());
 		shadowVS->CopyAllBufferData();
 		// Draw the mesh directly to avoid the entity's material
 		// Note: Your code may differ significantly here!
-		e->GetMesh()->SetBuffersAndDraw(context);
+		shapes[i]->GetMesh()->Draw();
 	}
 	viewport.Width = (float)this->windowWidth;
 	viewport.Height = (float)this->windowHeight;
@@ -712,8 +721,6 @@ void Game::Draw(float deltaTime, float totalTime)
 		1,
 		backBufferRTV.GetAddressOf(),
 		depthBufferDSV.Get());
-	//FIX ABOVE =================================================
-
 
 
 	// Frame START

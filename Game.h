@@ -56,6 +56,8 @@ private:
 	//Sky shaders
 	std::shared_ptr<SimpleVertexShader> skyVS;
 	std::shared_ptr<SimplePixelShader> skyPS;
+	//Shadow shader
+	std::shared_ptr<SimpleVertexShader> shadowVS;
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 	std::shared_ptr<GameEntity> shapes[6];
@@ -117,4 +119,5 @@ private:
 	Microsoft::WRL::ComPtr<ID3D11SamplerState> shadowSampler;
 	DirectX::XMFLOAT4X4 lightViewMatrix;
 	DirectX::XMFLOAT4X4 lightProjectionMatrix;
+	int shadowMapResolution = 1024;
 };
