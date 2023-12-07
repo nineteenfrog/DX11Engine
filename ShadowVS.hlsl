@@ -6,6 +6,7 @@ cbuffer externalData : register(b0)
     matrix world;
     matrix view;
     matrix projection;
+    
 };
 
 struct VertexShaderInput

@@ -17,7 +17,9 @@ Texture2D Albedo : register(t0); // "t" registers for textures
 Texture2D NormalMap : register(t1);
 Texture2D RoughnessMap : register(t2);
 Texture2D MetalnessMap : register(t3);
+Texture2D ShadowMap : register(t4); // Adjust index as necessary
 SamplerState BasicSampler : register(s0); // "s" registers for samplers
+SamplerComparisonState ShadowSampler : register(s1);
 
 // Struct representing the data we expect to receive from earlier pipeline stages
 // - Should match the output of our corresponding vertex shader
@@ -36,6 +38,7 @@ struct VertexToPixel
     float3 normal : NORMAL;
     float3 worldPosition : POSITION;
     float3 tangent : TANGENT;
+    float4 shadowMapPos : SHADOW_POSITION;
 };
 
 float3 diffuse(float3 normal, float3 dirToLight)
@@ -105,6 +108,19 @@ float3 calculatePointLight(
 // --------------------------------------------------------
 float4 main(VertexToPixel input) : SV_TARGET
 {
+    // Perform the perspective divide (divide by W) ourselves
+    input.shadowMapPos /= input.shadowMapPos.w;
+    // Convert the normalized device coordinates to UVs for sampling
+    float2 shadowUV = input.shadowMapPos.xy * 0.5f + 0.5f;
+    shadowUV.y = 1 - shadowUV.y; // Flip the Y
+    // Grab the distances we need: light-to-pixel and closest-surface
+    float distToLight = input.shadowMapPos.z;
+    // Get a ratio of comparison results using SampleCmpLevelZero()
+    float shadowAmount = ShadowMap.SampleCmpLevelZero(
+    ShadowSampler,
+    shadowUV,
+    distToLight).r;
+    
     //NORMAL MAPPING
     input.normal = normalize(input.normal);
     float3 unpackedNormal = NormalMap.Sample(BasicSampler, input.uv).rgb * 2 - 1;
@@ -132,7 +148,9 @@ float4 main(VertexToPixel input) : SV_TARGET
     float3 specularColor = lerp(F0_NON_METAL, surfaceColor.rgb, metalness);
 
     totalLight += calculateDirLight(directionalLight1, input, surfaceColor, specularColor, roughness, metalness);
-    totalLight += calculateDirLight(directionalLight2, input, surfaceColor, specularColor, roughness, metalness);
+    float3 shadowLight = calculateDirLight(directionalLight2, input, surfaceColor, specularColor, roughness, metalness);
+    shadowLight *= shadowAmount;
+    totalLight += shadowLight;
     totalLight += calculateDirLight(directionalLight3, input, surfaceColor, specularColor, roughness, metalness);
     totalLight += calculatePointLight(pointLight1, input, surfaceColor, specularColor, roughness, metalness);
     totalLight += calculatePointLight(pointLight2, input, surfaceColor, specularColor, roughness, metalness);
