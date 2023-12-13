@@ -38,6 +38,7 @@ Game::Game(HINSTANCE hInstance)
 	directionalLight3 = {};
 	pointLight1 = {};
 	pointLight2 = {};
+	blurAmount = 0.0f;
 	XMStoreFloat4x4(&lightViewMatrix, XMMatrixIdentity());
 	XMStoreFloat4x4(&lightProjectionMatrix, XMMatrixIdentity());
 }
@@ -715,6 +716,7 @@ void Game::Update(float deltaTime, float totalTime)
 			}
 			ImGui::PopID();
 		}
+		ImGui::SliderInt("Blur Amount", &blurAmount, 0.0f, 5.0f);
 		//ImGui::Image(shadowSRV.Get(), ImVec2(1024, 1024));
 
 		ImGui::End();
@@ -801,11 +803,15 @@ void Game::Draw(float deltaTime, float totalTime)
 			1,
 			backBufferRTV.GetAddressOf(),
 			depthBufferDSV.Get());
-		context->RSSetState(0);	
+		context->RSSetState(0);
 	}
-												//replace color if something fails
-	context->ClearRenderTargetView(ppRTV.Get(), colorOffset[0]);
-	context->OMSetRenderTargets(1, ppRTV.GetAddressOf(), depthBufferDSV.Get());
+
+	//Pre render
+	{
+		const float clearColor[4] = { 1.0,1.0,1.0,1.0 };
+		context->ClearRenderTargetView(ppRTV.Get(), clearColor);
+		context->OMSetRenderTargets(1, ppRTV.GetAddressOf(), depthBufferDSV.Get());
+	}
 
 	// Frame START
 	// - These things should happen ONCE PER FRAME
@@ -825,20 +831,20 @@ void Game::Draw(float deltaTime, float totalTime)
 	//Drawing shapes -A
 	for (int i = 0; i < 6; i++) {
 		shapes[i]->GetMaterial()->AddTextureSRV(
-			"ShadowMap", 
+			"ShadowMap",
 			shadowSRV);
 
 		shapes[i]->GetMaterial()->AddSampler(
 			"ShadowSampler",
 			shadowSampler);
 		shapes[i]->GetMaterial()->PrepareMaterial();
-		
+
 		shapes[i]->GetMaterial()->GetVertexShader()->SetMatrix4x4(
 			"lightView",
 			lightViewMatrix);
 
 		shapes[i]->GetMaterial()->GetVertexShader()->SetMatrix4x4(
-			"lightProjection", 
+			"lightProjection",
 			lightProjectionMatrix);
 
 
@@ -868,14 +874,31 @@ void Game::Draw(float deltaTime, float totalTime)
 			sizeof(Light));
 		//set the ambient color
 		shapes[i]->GetMaterial()->GetPixelShader()->SetFloat3(
-			"ambientColor", 
+			"ambientColor",
 			ambientColor);
-		
+
 
 		shapes[i]->Draw(context, *camera[activeCamera]);
 	}
 
 	sky.Draw(camera[activeCamera]);
+
+	//Post render
+	{
+		context->OMSetRenderTargets(1, backBufferRTV.GetAddressOf(), 0);
+
+		// Activate shaders and bind resources
+		// Also set any required cbuffer data (not shown)
+		ppVS->SetShader();
+		ppPS->SetShader();
+		ppPS->SetInt("blurRadius", blurAmount);
+		ppPS->SetFloat("pixelWidth", 1.0f / windowWidth);
+		ppPS->SetFloat("pixelHeight", 1.0f / windowHeight);
+		ppPS->CopyAllBufferData();
+		ppPS->SetShaderResourceView("Pixels", ppSRV.Get());
+		ppPS->SetSamplerState("ClampSampler", ppSampler.Get());
+		context->Draw(3, 0); // Draw exactly 3 vertices (one triangle)
+	}
 
 	// Frame END
 	// - These should happen exactly ONCE PER FRAME
