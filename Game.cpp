@@ -73,6 +73,7 @@ void Game::Init()
 	LoadTextures();
 	CreateGeometry();
 	LoadSky();
+	PostProcessSetup();
 
 	// Set initial graphics API state
 	//  - These settings persist until we change them
@@ -173,6 +174,16 @@ void Game::LoadShaders()
 		device,
 		context,
 		FixPath(L"ShadowVS.cso").c_str());
+
+	ppVS = std::make_shared<SimpleVertexShader>(
+		device,
+		context,
+		FixPath(L"PostVS.cso").c_str());
+
+	ppPS = std::make_shared<SimplePixelShader>(
+		device,
+		context,
+		FixPath(L"PostPS.cso").c_str());
 }
 
 void Game::LoadTextures()
@@ -476,6 +487,52 @@ void Game::CreateShadows()
 	XMStoreFloat4x4(&lightProjectionMatrix, lightProjection);
 }
 
+void Game::PostProcessSetup()
+{
+	// Sampler state for post processing
+	D3D11_SAMPLER_DESC ppSampDesc = {};
+	ppSampDesc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
+	ppSampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
+	ppSampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+	device->CreateSamplerState(&ppSampDesc, ppSampler.GetAddressOf());
+
+	// Describe the texture we're creating
+	D3D11_TEXTURE2D_DESC textureDesc = {};
+	textureDesc.Width = windowWidth;
+	textureDesc.Height = windowHeight;
+	textureDesc.ArraySize = 1;
+	textureDesc.BindFlags = D3D11_BIND_RENDER_TARGET | D3D11_BIND_SHADER_RESOURCE;
+	textureDesc.CPUAccessFlags = 0;
+	textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+	textureDesc.MipLevels = 1;
+	textureDesc.MiscFlags = 0;
+	textureDesc.SampleDesc.Count = 1;
+	textureDesc.SampleDesc.Quality = 0;
+	textureDesc.Usage = D3D11_USAGE_DEFAULT;
+	// Create the resource (no need to track it after the views are created below)
+	Microsoft::WRL::ComPtr<ID3D11Texture2D> ppTexture;
+	device->CreateTexture2D(&textureDesc, 0, ppTexture.GetAddressOf());
+
+	// Create the Render Target View
+	D3D11_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+	rtvDesc.Format = textureDesc.Format;
+	rtvDesc.Texture2D.MipSlice = 0;
+	rtvDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
+	device->CreateRenderTargetView(
+		ppTexture.Get(),
+		&rtvDesc,
+		ppRTV.ReleaseAndGetAddressOf());
+	// Create the Shader Resource View
+	// By passing it a null description for the SRV, we
+	// get a "default" SRV that has access to the entire resource
+	device->CreateShaderResourceView(
+		ppTexture.Get(),
+		0,
+		ppSRV.ReleaseAndGetAddressOf());
+}
+
 // --------------------------------------------------------
 // Creates the geometry we're going to draw - a single triangle for now
 // --------------------------------------------------------
@@ -727,6 +784,7 @@ void Game::Draw(float deltaTime, float totalTime)
 		shadowVS->SetShader();
 		shadowVS->SetMatrix4x4("view", lightViewMatrix);
 		shadowVS->SetMatrix4x4("projection", lightProjectionMatrix);
+
 		// Loop and draw all entities
 		for (int i = 0; i < 6; i++) {
 			shadowVS->SetMatrix4x4("world", shapes[i]->GetTransform()->GetWorldMatrix());
@@ -745,6 +803,9 @@ void Game::Draw(float deltaTime, float totalTime)
 			depthBufferDSV.Get());
 		context->RSSetState(0);	
 	}
+												//replace color if something fails
+	context->ClearRenderTargetView(ppRTV.Get(), colorOffset[0]);
+	context->OMSetRenderTargets(1, ppRTV.GetAddressOf(), depthBufferDSV.Get());
 
 	// Frame START
 	// - These things should happen ONCE PER FRAME

@@ -159,6 +159,10 @@
     <FxCompile Include="ShadowVS.hlsl">
       <Filter>Shaders</Filter>
     </FxCompile>
+    <FxCompile Include="PostVS.hlsl">
+      <Filter>Shaders</Filter>
+    </FxCompile>
+    <FxCompile Include="PostPS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Include.hlsli">

@@ -39,6 +39,7 @@ private:
 	void LoadTextures();
 	void LoadSky();
 	void CreateShadows();
+	void PostProcessSetup();
 
 	// Note the usage of ComPtr below
 	//  - This is a smart pointer for objects that abide by the
@@ -58,6 +59,10 @@ private:
 	std::shared_ptr<SimplePixelShader> skyPS;
 	//Shadow shader
 	std::shared_ptr<SimpleVertexShader> shadowVS;
+	
+	//Post process shaders
+	std::shared_ptr<SimpleVertexShader> ppVS;
+	std::shared_ptr<SimplePixelShader> ppPS;
 
 	Microsoft::WRL::ComPtr<ID3D11InputLayout> inputLayout;
 	std::shared_ptr<GameEntity> shapes[6];
@@ -120,4 +125,9 @@ private:
 	DirectX::XMFLOAT4X4 lightViewMatrix;
 	DirectX::XMFLOAT4X4 lightProjectionMatrix;
 	int shadowMapResolution = 1024;
+
+	//Post Process Variables
+	Microsoft::WRL::ComPtr<ID3D11SamplerState> ppSampler;
+	Microsoft::WRL::ComPtr<ID3D11RenderTargetView> ppRTV; // For rendering
+	Microsoft::WRL::ComPtr<ID3D11ShaderResourceView> ppSRV; // For sampling
 };
