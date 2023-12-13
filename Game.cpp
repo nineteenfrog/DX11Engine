@@ -453,7 +453,7 @@ void Game::CreateShadows()
 	shadowSampDesc.AddressV = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowSampDesc.AddressW = D3D11_TEXTURE_ADDRESS_BORDER;
 	shadowSampDesc.BorderColor[0] = 1.0f; // Only need the first component
-	device->CreateSamplerState(&shadowSampDesc, &shadowSampler);
+	device->CreateSamplerState(&shadowSampDesc, &this->shadowSampler);
 
 	XMVECTOR lightDirection = XMVectorSet(
 		directionalLight2.direction.x,
@@ -658,7 +658,7 @@ void Game::Update(float deltaTime, float totalTime)
 			}
 			ImGui::PopID();
 		}
-		ImGui::Image(shadowSRV.Get(), ImVec2(1024, 1024));
+		//ImGui::Image(shadowSRV.Get(), ImVec2(1024, 1024));
 
 		ImGui::End();
 		if (input.KeyPress('C')) {
